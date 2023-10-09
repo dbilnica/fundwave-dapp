@@ -1,10 +1,11 @@
 // TODO: SignMessage
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { FC, useState, ChangeEvent } from 'react';
-import { Program, AnchorProvider, web3, utils, BN } from "@project-serum/anchor"
+import { Program, ProgramAccount, AnchorProvider, web3, utils, BN } from "@project-serum/anchor"
 import { PublicKey } from '@solana/web3.js';
-import { Button, FloatingLabel, Form } from 'react-bootstrap';
+import { FloatingLabel, Form } from 'react-bootstrap';
 import idl from "./crowdfunding_dapp.json"
+import { program } from '@project-serum/anchor/dist/cjs/native/system';
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string)
@@ -15,11 +16,18 @@ export const Crowdfunding: FC = () => {
     //fetch current connection all of the project
     const { connection } = useConnection();
 
-    //const [campaign, setCampaign] = useState([]);
+    const [campaigns, setCampaigns] = useState<ProgramAccount[]>([]);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [goal, setGoal] = useState<number>(1);
     const [duration, setDuration] = useState<number>(1);
+
+    const getAllCampaigns = async () => {
+        const anchProvider = await getProvider()
+        const program = new Program(idl_object, programID, anchProvider)
+        const campaigns = await program.account.campaign.all();
+        setCampaigns(campaigns);
+    }
 
     //interacting with anchor program 
     const getProvider = async (): Promise<AnchorProvider> => {
@@ -73,7 +81,7 @@ export const Crowdfunding: FC = () => {
 
     }
 
-    /*const getCampaigns = async () => {
+    const getCampaigns = async () => {
         const anchProvider = await getProvider()
         const program = new Program(idl_object, programID, anchProvider)
 
@@ -91,7 +99,7 @@ export const Crowdfunding: FC = () => {
         catch (error) {
             console.error("Error while getting the campaigns")
         }
-    }*/
+    }
     //publicKey is the PDA where we are going to deposit money
 
     /*
