@@ -3,7 +3,7 @@
   "name": "crowdfunding_dapp",
   "instructions": [
     {
-      "name": "create",
+      "name": "createCampaign",
       "accounts": [
         {
           "name": "campaign",
@@ -14,6 +14,11 @@
           "name": "user",
           "isMut": true,
           "isSigner": true
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "systemProgram",
@@ -41,7 +46,75 @@
       ]
     },
     {
-      "name": "support",
+      "name": "reviewCampaign",
+      "accounts": [
+        {
+          "name": "campaign",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancelCampaign",
+      "accounts": [
+        {
+          "name": "campaign",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initializeAdmin",
+      "accounts": [
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "adminPubkey",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "supportCampaign",
       "accounts": [
         {
           "name": "campaign",
@@ -67,7 +140,7 @@
       ]
     },
     {
-      "name": "withdraw",
+      "name": "withdrawCampaign",
       "accounts": [
         {
           "name": "campaign",
@@ -84,6 +157,27 @@
         {
           "name": "amount",
           "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "transferOwnership",
+      "accounts": [
+        {
+          "name": "currentAdmin",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "newAdmin",
+          "type": "publicKey"
         }
       ]
     }
@@ -121,12 +215,103 @@
           {
             "name": "owner",
             "type": "publicKey"
+          },
+          {
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "name": "isPledged",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Admin",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "adminPubkey",
+            "type": "publicKey"
+          },
+          {
+            "name": "isInitialized",
+            "type": "bool"
           }
         ]
       }
     }
   ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidCampaignNameLength",
+      "msg": "Campaign name must be between a specified range."
+    },
+    {
+      "code": 6001,
+      "name": "InvalidDescriptionLength",
+      "msg": "Campaign description must be between a specified range."
+    },
+    {
+      "code": 6002,
+      "name": "InvalidDurationOrGoal",
+      "msg": "Invalid campaign duration or goal."
+    },
+    {
+      "code": 6003,
+      "name": "InvalidNameOrDescription",
+      "msg": "Campaign or description cannot be empty."
+    },
+    {
+      "code": 6004,
+      "name": "InvalidAdminPubkey",
+      "msg": "Invalid admin pubkey provided."
+    },
+    {
+      "code": 6005,
+      "name": "AdminAlreadyInitialized",
+      "msg": "Admin account is already initialized."
+    },
+    {
+      "code": 6006,
+      "name": "CampaignNotActive",
+      "msg": "Campaign is not active."
+    },
+    {
+      "code": 6007,
+      "name": "CampaignEnded",
+      "msg": "Campaign has ended."
+    },
+    {
+      "code": 6008,
+      "name": "ExcessSupportAmount",
+      "msg": "Support amount exceeds remaining goal."
+    },
+    {
+      "code": 6009,
+      "name": "WithdrawalNotAllowed",
+      "msg": "Campaign goal has not been met. Withdrawal not allowed."
+    },
+    {
+      "code": 6010,
+      "name": "NotCampaignOwner",
+      "msg": "User is not the owner of the campaign."
+    },
+    {
+      "code": 6011,
+      "name": "AdminNotInitialized",
+      "msg": "Admin must be initialized before creation of campaign."
+    },
+    {
+      "code": 6012,
+      "name": "UnauthorizedUser",
+      "msg": "You do not have the necessary permissions to perform this action."
+    }
+  ],
   "metadata": {
-    "address": "BJepWcq7nsmsztHZA3XQRSVKXUf31o7g1nJAVSQWPrZ8"
+    "address": "eC6ZDbhTsp6kFECv5BqTu6hsCEu5sJHKGBFhiNcXpoj"
   }
 }

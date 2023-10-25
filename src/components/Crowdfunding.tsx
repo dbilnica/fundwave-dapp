@@ -1,6 +1,6 @@
 // TODO: SignMessage
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { FC, useState, ChangeEvent } from 'react';
+import { FC, useState, useEffect, ChangeEvent } from 'react';
 import { Program, ProgramAccount, AnchorProvider, web3, utils, BN } from "@project-serum/anchor"
 import { PublicKey } from '@solana/web3.js';
 import { FloatingLabel, Form } from 'react-bootstrap';
@@ -21,13 +21,33 @@ export const Crowdfunding: FC = () => {
     const [description, setDescription] = useState('');
     const [goal, setGoal] = useState<number>(1);
     const [duration, setDuration] = useState<number>(1);
+    //const [adminPubkey, setAdminPubkey] = useState<PublicKey | null>(null);
+    const [pubkeyInput, setPubkeyInput] = useState("");
 
-    const getAllCampaigns = async () => {
-        const anchProvider = await getProvider()
-        const program = new Program(idl_object, programID, anchProvider)
-        const campaigns = await program.account.campaign.all();
-        setCampaigns(campaigns);
-    }
+    type CampaignData = {
+        name: string;
+        description: string;
+        goal: BN;  // The fetched data shows "goal" as a string, but you might be converting it to BN in your code.
+        pledged: BN; // Same as above.
+        duration: BN; // Same as above.
+        endCampaign: BN; // Same as above.
+        owner: PublicKey;  // This is represented as a string in your data, but you might be converting it to PublicKey in your code.
+        isActive: boolean;
+        isPledged: boolean;
+    };
+
+    type ProgramAccount = {
+        publicKey: PublicKey;
+        account: CampaignData;
+    };
+
+    useEffect(() => {
+        getCampaigns();
+    }, []);
+    useEffect(() => {
+        console.log("Current campaigns state:", campaigns);
+    }, [campaigns]);
+
 
     //interacting with anchor program 
     const getProvider = async (): Promise<AnchorProvider> => {
@@ -49,6 +69,11 @@ export const Crowdfunding: FC = () => {
         setDuration(e.target.value);
     };
 
+    const onPubkeyInputChange = (event) => {
+        setPubkeyInput(event.target.value);
+    };
+
+
     const createCampaign = async () => {
         try {
             // obtaining provider
@@ -64,15 +89,20 @@ export const Crowdfunding: FC = () => {
                 (await anchProvider).wallet.publicKey.toBuffer() // public key of user that is creating PDA
             ], program.programId)
 
-            await program.rpc.create(name, description, new BN(goal), new BN(duration), {
+            const [admin] = await PublicKey.findProgramAddressSync([
+                utils.bytes.utf8.encode("admin_account")
+            ], program.programId)
+
+            await program.rpc.createCampaign(name, description, new BN(goal), new BN(duration), {
                 // we need to add all the accounts we are working with 
                 accounts: {
                     campaign,
                     user: anchProvider.wallet.publicKey,
+                    admin,
                     systemProgram: web3.SystemProgram.programId
                 }
             })
-
+            console.log("Duration of the campaign is" + duration.toString())
             console.log("Wow, new campaign was created!" + campaign.toString())
 
         } catch (error) {
@@ -80,26 +110,93 @@ export const Crowdfunding: FC = () => {
         }
 
     }
+    const initAdmin = async () => {
+        try {
+            const anchProvider = await getProvider();
+            const program = new Program(idl_object, programID, anchProvider);
+            const signerPubkey = anchProvider.wallet.publicKey;
 
-    const getCampaigns = async () => {
+            const [admin] = await PublicKey.findProgramAddressSync([
+                utils.bytes.utf8.encode("admin_account")
+            ], program.programId)
+
+            console.log(admin.toBase58());
+            console.log(program.programId.toBase58())
+            console.log(signerPubkey.toBase58());
+
+            await program.rpc.initializeAdmin(signerPubkey, {
+                accounts: {
+                    admin,
+                    user: signerPubkey,
+                    systemProgram: web3.SystemProgram.programId
+                }
+            });
+
+            console.log("Admin initialized successfully");
+
+        } catch (error) {
+            console.error("Error while initializing admin: ", error);
+        }
+    };
+
+
+    /*const getCampaigns = async () => {
         const anchProvider = await getProvider()
         const program = new Program(idl_object, programID, anchProvider)
 
         try {
-            //mapping it to work with each item separately - reference to all of the items in the returned array
-            Promise.all((await connection.getProgramAccounts(programID)).map(async campaign => ({
-                ...(await program.account.campaign.fetch(campaign.pubkey)), //we need to fetch more info about the specific account
-                pubkey: campaign.pubkey
-            }))).then(campaigns => {
-                console.log(campaigns)
-                //using this state, probably because of the changes ?
-                setCampaign(campaigns)
-            })
+            Promise.all(
+                (await connection.getProgramAccounts(programID)).map(async (account) => {
+                    const campaignData = await program.account.campaign.fetch(account.pubkey);
+                    return {
+                        publicKey: account.pubkey,
+                        account: campaignData
+                    };
+                })
+            ).then((campaigns: ProgramAccount[]) => {
+                console.log(campaigns);
+                setCampaigns(campaigns);
+            });
+
+
+        }
+        catch (error) {
+            console.error("Error while getting the campaigns")
+        }
+    }*/
+
+    const getCampaigns = async () => {
+        const anchProvider = await getProvider()
+        const program = new Program(idl_object, programID, anchProvider)
+        const programAccounts = await connection.getProgramAccounts(programID);
+        console.log('Fetched program accounts:', programAccounts.length);
+
+        try {
+            Promise.all(
+                (await connection.getProgramAccounts(programID)).map(async (account) => {
+                    const campaignData = await program.account.campaign.fetch(account.pubkey);
+                    console.log("Campaign Data for pubkey:", account.pubkey, campaignData);
+                    console.log("Processed account:", account.pubkey.toBase58());
+
+                    console.log("Raw campaignData:", campaignData);
+                    return {
+                        publicKey: account.pubkey,
+                        account: campaignData
+                    };
+                })
+            ).then((campaigns: ProgramAccount[]) => {
+                console.log(campaigns);
+                console.log("About to set campaigns:", campaigns);
+                setCampaigns(campaigns);
+            });
+
+
         }
         catch (error) {
             console.error("Error while getting the campaigns")
         }
     }
+    
     //publicKey is the PDA where we are going to deposit money
 
     /*
@@ -126,6 +223,12 @@ export const Crowdfunding: FC = () => {
         e.preventDefault(); // This will prevent the page from refreshing
         createCampaign();
     }
+    
+    // Handler function when 'Initialize Admin' button is clicked
+    const handleAdminInit = (e) => {
+        e.preventDefault(); // This will prevent the page from refreshing
+        initAdmin();
+    };
 
     return (
         <div className="flex justify-center item-center h-screen">
@@ -150,8 +253,8 @@ export const Crowdfunding: FC = () => {
                         </Form.Group>
                         <Form.Group className='mb-3'>
                             <FloatingLabel
-                                controlId='duration' label='duration'>
-                                <Form.Control as='input' placeholder='Duration of the campaign' value={goal} onChange={onDurationChange} />
+                                controlId='duration' label='Duration'>
+                                <Form.Control as='input' placeholder='Duration of the campaign' value={duration} onChange={onDurationChange} />
                             </FloatingLabel>
                         </Form.Group>
                         <Form.Group className='mb-3'>
@@ -162,6 +265,35 @@ export const Crowdfunding: FC = () => {
                             </button>
                         </Form.Group>
                     </Form>
+                    <Form id='adminInit' onSubmit={handleAdminInit} className="mt-5">
+                        <Form.Group className='mb-3'>
+                            <FloatingLabel controlId='pubkey' label='Admin Pubkey'>
+                                <Form.Control type='text' placeholder='Enter Admin Pubkey' value={pubkeyInput} onChange={onPubkeyInputChange} />
+                            </FloatingLabel>
+                        </Form.Group>
+
+                        <Form.Group className='mb-3'>
+                            <button className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 hover:from-white hover:to-purple-300 text-black">
+                                Initialize Admin
+                            </button>
+                        </Form.Group>
+                    </Form>
+
+                    {/* Display all campaigns */}
+                    <div className="mt-5">
+                        <h2 className="text-center text-xl font-bold">All Campaigns</h2>
+                        <ul>
+                            {campaigns.map((campaign, index) => (
+                                <li key={index} className="border p-4 mb-2">
+                                    <h3 className="text-lg font-semibold">{campaign.account.name}</h3>
+                                    <p>{campaign.account.description}</p>
+                                    <p>Goal: {campaign.account.goal?.toString()}</p>
+                                    <p>Duration: {campaign.account.duration?.toString()}</p>
+                                    <p>End Campaign: {campaign.account.endCampaign?.toString()}</p>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
             </>
         </div>
