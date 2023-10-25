@@ -16,38 +16,12 @@ export const Crowdfunding: FC = () => {
     //fetch current connection all of the project
     const { connection } = useConnection();
 
-    const [campaigns, setCampaigns] = useState<ProgramAccount[]>([]);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [goal, setGoal] = useState<number>(1);
     const [duration, setDuration] = useState<number>(1);
     //const [adminPubkey, setAdminPubkey] = useState<PublicKey | null>(null);
     const [pubkeyInput, setPubkeyInput] = useState("");
-
-    type CampaignData = {
-        name: string;
-        description: string;
-        goal: BN;  // The fetched data shows "goal" as a string, but you might be converting it to BN in your code.
-        pledged: BN; // Same as above.
-        duration: BN; // Same as above.
-        endCampaign: BN; // Same as above.
-        owner: PublicKey;  // This is represented as a string in your data, but you might be converting it to PublicKey in your code.
-        isActive: boolean;
-        isPledged: boolean;
-    };
-
-    type ProgramAccount = {
-        publicKey: PublicKey;
-        account: CampaignData;
-    };
-
-    useEffect(() => {
-        getCampaigns();
-    }, []);
-    useEffect(() => {
-        console.log("Current campaigns state:", campaigns);
-    }, [campaigns]);
-
 
     //interacting with anchor program 
     const getProvider = async (): Promise<AnchorProvider> => {
@@ -165,38 +139,7 @@ export const Crowdfunding: FC = () => {
         }
     }*/
 
-    const getCampaigns = async () => {
-        const anchProvider = await getProvider()
-        const program = new Program(idl_object, programID, anchProvider)
-        const programAccounts = await connection.getProgramAccounts(programID);
-        console.log('Fetched program accounts:', programAccounts.length);
 
-        try {
-            Promise.all(
-                (await connection.getProgramAccounts(programID)).map(async (account) => {
-                    const campaignData = await program.account.campaign.fetch(account.pubkey);
-                    console.log("Campaign Data for pubkey:", account.pubkey, campaignData);
-                    console.log("Processed account:", account.pubkey.toBase58());
-
-                    console.log("Raw campaignData:", campaignData);
-                    return {
-                        publicKey: account.pubkey,
-                        account: campaignData
-                    };
-                })
-            ).then((campaigns: ProgramAccount[]) => {
-                console.log(campaigns);
-                console.log("About to set campaigns:", campaigns);
-                setCampaigns(campaigns);
-            });
-
-
-        }
-        catch (error) {
-            console.error("Error while getting the campaigns")
-        }
-    }
-    
     //publicKey is the PDA where we are going to deposit money
 
     /*
@@ -278,22 +221,6 @@ export const Crowdfunding: FC = () => {
                             </button>
                         </Form.Group>
                     </Form>
-
-                    {/* Display all campaigns */}
-                    <div className="mt-5">
-                        <h2 className="text-center text-xl font-bold">All Campaigns</h2>
-                        <ul>
-                            {campaigns.map((campaign, index) => (
-                                <li key={index} className="border p-4 mb-2">
-                                    <h3 className="text-lg font-semibold">{campaign.account.name}</h3>
-                                    <p>{campaign.account.description}</p>
-                                    <p>Goal: {campaign.account.goal?.toString()}</p>
-                                    <p>Duration: {campaign.account.duration?.toString()}</p>
-                                    <p>End Campaign: {campaign.account.endCampaign?.toString()}</p>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
                 </div>
             </>
         </div>
