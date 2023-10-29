@@ -22,6 +22,7 @@ export const Crowdfunding: FC = () => {
     const [duration, setDuration] = useState<number>(1);
     //const [adminPubkey, setAdminPubkey] = useState<PublicKey | null>(null);
     const [pubkeyInput, setPubkeyInput] = useState("");
+    const [pubkeyNewAdminInput, setPubkeyNewAdminInput] = useState("");
 
     //interacting with anchor program 
     const getProvider = async (): Promise<AnchorProvider> => {
@@ -45,6 +46,10 @@ export const Crowdfunding: FC = () => {
 
     const onPubkeyInputChange = (event) => {
         setPubkeyInput(event.target.value);
+    };
+
+    const onPubkeyNewAdminInputChange = (event) => {
+        setPubkeyNewAdminInput(event.target.value);
     };
 
 
@@ -113,6 +118,35 @@ export const Crowdfunding: FC = () => {
         }
     };
 
+    const transferOwnership = async () => {
+        try {
+            const anchProvider = await getProvider();
+            const program = new Program(idl_object, programID, anchProvider);
+            const signerPubkey = anchProvider.wallet.publicKey;
+            const newAdminPubkey = new PublicKey(pubkeyNewAdminInput);
+
+            const [currentAdmin] = await PublicKey.findProgramAddressSync([
+                utils.bytes.utf8.encode("admin_account")
+            ], program.programId)
+
+            console.log(currentAdmin.toBase58());
+            console.log(program.programId.toBase58())
+            console.log(signerPubkey.toBase58());
+
+            await program.rpc.transferOwnership(newAdminPubkey, {
+                accounts: {
+                    currentAdmin,
+                    user: signerPubkey,
+                }
+            });
+
+            console.log("Ownership has been transfered successfully");
+
+        } catch (error) {
+            console.error("Error while transfering the ownership: ", error);
+        }
+    };
+
 
     /*const getCampaigns = async () => {
         const anchProvider = await getProvider()
@@ -139,29 +173,7 @@ export const Crowdfunding: FC = () => {
         }
     }*/
 
-
     //publicKey is the PDA where we are going to deposit money
-
-    /*
-    const depositBank = async (publicKey) => {
-        try {
-            // obtaining provider
-            const anchProvider = await getProvider();
-            const program = new Program(idl_object, programID, anchProvider)
-
-            await program.rpc.deposit(new BN(0.1 * web3.LAMPORTS_PER_SOL), {
-                accounts: {
-                    bank: publicKey,
-                    user: anchProvider.wallet.publicKey,
-                    systemProgram: web3.SystemProgram.programId
-                }
-            })
-
-            console.log("Deposit done" + publicKey)
-        } catch (error) {
-            console.error("Error while depositing")
-        }
-    }*/
     const handleSubmit = async (e) => {
         e.preventDefault(); // This will prevent the page from refreshing
         createCampaign();
@@ -171,6 +183,11 @@ export const Crowdfunding: FC = () => {
     const handleAdminInit = (e) => {
         e.preventDefault(); // This will prevent the page from refreshing
         initAdmin();
+    };
+
+    const handleTransferOwnership = (e) => {
+        e.preventDefault(); // This will prevent the page from refreshing
+        transferOwnership();
     };
 
     return (
@@ -218,6 +235,20 @@ export const Crowdfunding: FC = () => {
                         <Form.Group className='mb-3'>
                             <button className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 hover:from-white hover:to-purple-300 text-black">
                                 Initialize Admin
+                            </button>
+                        </Form.Group>
+                    </Form>
+
+                    <Form id='transferOwnership' onSubmit={handleTransferOwnership} className="mt-5">
+                        <Form.Group className='mb-3'>
+                            <FloatingLabel controlId='pubkey2' label='New Admin Pubkey'>
+                                <Form.Control type='text' placeholder='Enter New Admin Pubkey' value={pubkeyNewAdminInput} onChange={onPubkeyNewAdminInputChange} />
+                            </FloatingLabel>
+                        </Form.Group>
+
+                        <Form.Group className='mb-3'>
+                            <button className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 hover:from-white hover:to-purple-300 text-black">
+                                Transfer Ownership
                             </button>
                         </Form.Group>
                     </Form>

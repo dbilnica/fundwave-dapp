@@ -1,7 +1,7 @@
 import { useEffect, useState, FC } from 'react';
-import { BN, Program, ProgramAccount, AnchorProvider} from '@project-serum/anchor';
-import { PublicKey} from '@solana/web3.js';
-import { Table } from 'react-bootstrap';
+import { BN, Program, ProgramAccount, AnchorProvider, web3, utils, getProvider } from '@project-serum/anchor';
+import { PublicKey } from '@solana/web3.js';
+import { Table, Button } from 'react-bootstrap';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import idl from "./crowdfunding_dapp.json";
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
@@ -18,14 +18,45 @@ interface CampaignsTableProps {
 export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     const [campaigns, setCampaigns] = useState<ProgramAccount[]>([]);
 
+    const ourWallet = useWallet();
+    const { connection } = useConnection();
+    const [amount, setAmount] = useState("");
+
+
+
+    const getProvider = async (): Promise<AnchorProvider> => {
+        const provider = new AnchorProvider(connection, ourWallet, AnchorProvider.defaultOptions())
+        return provider;
+    }
+
     const getAllCampaigns = async () => {
-        try{
+        try {
             const fetchedCampaigns = await program.account.campaign.all();
             setCampaigns(fetchedCampaigns);
-        } catch(error) {
+        } catch (error) {
             console.error("Error while getting the campaigns")
         }
     };
+
+    const supportCampaign = async (publicKey, amount) => {
+        try {
+            const anchProvider = await getProvider();
+            const program = new Program(idl_object, programID, anchProvider)
+
+            await program.methods.supportCampaign(new BN(amount))
+                .accounts({
+                    campaign: publicKey,
+                    user: anchProvider.wallet.publicKey,
+                    systemProgram: web3.SystemProgram.programId,
+                
+            }).rpc();
+            console.log("Campaign has been successfully supported " + publicKey)
+            setTimeout(getAllCampaigns, 2000);
+        } catch (error) {
+            console.log("Error while supporting")
+        }
+
+    }
 
     useEffect(() => {
         getAllCampaigns();
@@ -42,6 +73,8 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                         <th>Description</th>
                         <th>Target Amount</th>
                         <th>Donated</th>
+                        <th>End Date</th>
+                        <th>Donate Amount</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -52,8 +85,23 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                             <td>{c.account.name}</td>
                             <td>{c.account.description}</td>
                             <td>{c.account.goal.toString()}</td>
+                            <td>{c.account.pledged.toString()}</td>
                             <td>{c.account.duration.toString()}</td>
                             <td>{c.account.endCampaign.toString()}</td>
+                            <td>
+                                <input type='number'
+                                    placeholder='amount'
+                                    onChange={(e) => setAmount(e.target.value)}></input>
+                                value={amount}
+                            </td>
+                            <td>
+                                <Button
+                                    className='m-1'
+                                    variant='primary'
+                                    onClick={() => supportCampaign(c.publicKey, amount)}>
+                                    Pledge
+                                </Button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
@@ -73,18 +121,18 @@ export const ShowCampaigns: FC = () => {
     }
 
     const initializeProgram = async () => {
-        try{
+        try {
             const anchProvider = await getProvider();
             const program = new Program(idl_object, programID, anchProvider);
             setProgram(program);
-        } catch(error){
+        } catch (error) {
             console.error("Error while program initialization")
         }
     };
 
     useEffect(() => {
         initializeProgram();
-    }, [ourWallet, connection]); 
+    }, [ourWallet, connection]);
 
     return (
         <div className='campaigns-view p-5'>
