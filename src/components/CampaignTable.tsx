@@ -55,7 +55,72 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
         } catch (error) {
             console.log("Error while supporting")
         }
+    }
 
+    const reviewCampaign = async (publicKey) => {
+        try {
+            const anchProvider = await getProvider();
+            const program = new Program(idl_object, programID, anchProvider)
+
+            const [admin] = await PublicKey.findProgramAddressSync([
+                utils.bytes.utf8.encode("admin_account")
+            ], program.programId)
+
+            await program.methods.reviewCampaign()
+                .accounts({
+                    campaign: publicKey,
+                    admin,
+                    user: anchProvider.wallet.publicKey,
+                
+            }).rpc();
+            console.log("Campaign has been successfully reviewed " + publicKey)
+            //setTimeout(getAllCampaigns, 2000);
+        } catch (error) {
+            console.log("Error while reviewing")
+        }
+    }
+
+    const cancelCampaign = async (publicKey) => {
+        try {
+            const anchProvider = await getProvider();
+            const program = new Program(idl_object, programID, anchProvider)
+
+            const [admin] = await PublicKey.findProgramAddressSync([
+                utils.bytes.utf8.encode("admin_account")
+            ], program.programId)
+
+            await program.methods.cancelCampaign()
+                .accounts({
+                    campaign: publicKey,
+                    admin,
+                    user: anchProvider.wallet.publicKey,
+                
+            }).rpc();
+            console.log("Campaign has been successfully canceled " + publicKey)
+            //setTimeout(getAllCampaigns, 2000);
+        } catch (error) {
+            console.log("Error while cancelling")
+        }
+    }
+
+    const withdrawCampaign = async (publicKey) => {
+        try {
+            const anchProvider = await getProvider();
+            const program = new Program(idl_object, programID, anchProvider)
+            //const fetchedCampaign = await program.account.campaign.fetch(publicKey);
+            //const goal = fetchedCampaign.;
+            //console.log(fetchedCampaign);
+            await program.methods.withdrawCampaign(new BN(1000))
+                .accounts({
+                    campaign: publicKey,
+                    user: anchProvider.wallet.publicKey,
+                
+            }).rpc();
+            console.log("Campaign has been successfully withdrawed " + publicKey)
+            //setTimeout(getAllCampaigns, 2000);
+        } catch (error) {
+            console.log("Error while withdrawing")
+        }
     }
 
     useEffect(() => {
@@ -100,6 +165,30 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                                     variant='primary'
                                     onClick={() => supportCampaign(c.publicKey, amount)}>
                                     Pledge
+                                </Button>
+                            </td>
+                            <td>
+                                <Button
+                                    className='m-1'
+                                    variant='primary'
+                                    onClick={() => reviewCampaign(c.publicKey)}>
+                                    Review Campaign
+                                </Button>
+                            </td>
+                            <td>
+                                <Button
+                                    className='m-1'
+                                    variant='primary'
+                                    onClick={() => cancelCampaign(c.publicKey)}>
+                                    Cancel Campaign
+                                </Button>
+                            </td>
+                            <td>
+                                <Button
+                                    className='m-1'
+                                    variant='primary'
+                                    onClick={() => withdrawCampaign(c.publicKey)}>
+                                    Withdraw Campaign
                                 </Button>
                             </td>
                         </tr>

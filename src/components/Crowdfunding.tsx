@@ -72,15 +72,14 @@ export const Crowdfunding: FC = () => {
                 utils.bytes.utf8.encode("admin_account")
             ], program.programId)
 
-            await program.rpc.createCampaign(name, description, new BN(goal), new BN(duration), {
+            await program.methods.createCampaign(name, description, new BN(goal), new BN(duration))
                 // we need to add all the accounts we are working with 
-                accounts: {
+                .accounts({
                     campaign,
                     user: anchProvider.wallet.publicKey,
                     admin,
-                    systemProgram: web3.SystemProgram.programId
-                }
-            })
+                    systemProgram: web3.SystemProgram.programId,
+            }).rpc();
             console.log("Duration of the campaign is" + duration.toString())
             console.log("Wow, new campaign was created!" + campaign.toString())
 
@@ -103,16 +102,13 @@ export const Crowdfunding: FC = () => {
             console.log(program.programId.toBase58())
             console.log(signerPubkey.toBase58());
 
-            await program.rpc.initializeAdmin(signerPubkey, {
-                accounts: {
+            await program.methods.initializeAdmin(signerPubkey)
+                .accounts({
                     admin,
                     user: signerPubkey,
                     systemProgram: web3.SystemProgram.programId
-                }
-            });
-
+            }).rpc();
             console.log("Admin initialized successfully");
-
         } catch (error) {
             console.error("Error while initializing admin: ", error);
         }
@@ -133,13 +129,11 @@ export const Crowdfunding: FC = () => {
             console.log(program.programId.toBase58())
             console.log(signerPubkey.toBase58());
 
-            await program.rpc.transferOwnership(newAdminPubkey, {
-                accounts: {
+            await program.methods.transferOwnership(newAdminPubkey)
+                .accounts({
                     currentAdmin,
                     user: signerPubkey,
-                }
-            });
-
+            }).rpc();
             console.log("Ownership has been transfered successfully");
 
         } catch (error) {
