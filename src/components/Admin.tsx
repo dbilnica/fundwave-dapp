@@ -15,7 +15,7 @@ interface CampaignsTableProps {
     walletKey: PublicKey;
 }
 
-export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
+export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     const [campaigns, setCampaigns] = useState<ProgramAccount[]>([]);
 
     const ourWallet = useWallet();
@@ -58,25 +58,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
             console.error("Error while getting the campaigns")
         }
     };
-
-    const supportCampaign = async (publicKey, amount) => {
-        try {
-            const anchProvider = await getProvider();
-            const program = new Program(idl_object, programID, anchProvider)
-
-            await program.methods.supportCampaign(new BN(amount))
-                .accounts({
-                    campaign: publicKey,
-                    user: anchProvider.wallet.publicKey,
-                    systemProgram: web3.SystemProgram.programId,
-
-                }).rpc();
-            console.log("Campaign has been successfully supported " + publicKey)
-            setTimeout(getAllCampaigns, 2000);
-        } catch (error) {
-            console.log("Error while supporting")
-        }
-    }
 
     const reviewCampaign = async (publicKey) => {
         try {
@@ -123,30 +104,12 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
         }
     }
 
-    const withdrawCampaign = async (publicKey) => {
-        try {
-            const anchProvider = await getProvider();
-            const program = new Program(idl_object, programID, anchProvider)
-
-            await program.methods.withdrawCampaign()
-                .accounts({
-                    campaign: publicKey,
-                    user: anchProvider.wallet.publicKey,
-
-                }).rpc();
-            console.log("Campaign has been successfully withdrawed " + publicKey)
-
-        } catch (error) {
-            console.log("Error while withdrawing")
-        }
-    }
-
     useEffect(() => {
         const interval = setInterval(() => {
             const newCountdowns = {};
             campaigns.forEach(campaign => {
                 const endTime = new Date(campaign.account.endCampaign.toNumber() * 1000);
-                if (!isNaN(endTime.getTime())) {
+                if (!isNaN(endTime.getTime())) { 
                     newCountdowns[campaign.publicKey.toBase58()] = calculateTimeRemaining(endTime);
                 }
             });
@@ -178,7 +141,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Target Amount</th>
                             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Donated</th>
                             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">End Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Donate Amount</th>
                             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -199,22 +161,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                                                 ? `${countdown.days}d ${countdown.hours}h ${countdown.minutes}m ${countdown.seconds}s`
                                                 : "Campaign ended"}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <input
-                                            type="number"
-                                            className="w-full max-w-lg border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
-                                            placeholder="Amount"
-                                            onChange={(e) => setAmount(e.target.value)}
-                                        />
-                                    </td>
-
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                        <button
-                                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
-                                            onClick={() => supportCampaign(c.publicKey, amount)}
-                                        >
-                                            Pledge
-                                        </button>
                                         <button
                                             className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
                                             onClick={() => reviewCampaign(c.publicKey)}
@@ -226,12 +173,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                                             onClick={() => cancelCampaign(c.publicKey)}
                                         >
                                             Cancel Campaign
-                                        </button>
-                                        <button
-                                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
-                                            onClick={() => withdrawCampaign(c.publicKey)}
-                                        >
-                                            Withdraw Campaign
                                         </button>
                                     </td>
                                 </tr>
@@ -245,7 +186,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
 
 };
 
-export const ShowCampaigns: FC = () => {
+export const Admin: FC = () => {
     const ourWallet = useWallet();
     const { connection } = useConnection();
     const [program, setProgram] = useState<Program | null>(null);
@@ -272,10 +213,10 @@ export const ShowCampaigns: FC = () => {
     return (
         <div className='campaigns-view p-5'>
             {!ourWallet.connected && <WalletMultiButton />}
-            {ourWallet.connected && program && <CampaignsTable walletKey={ourWallet.publicKey!} program={program} />}
+            {ourWallet.connected && program && <AdminTable walletKey={ourWallet.publicKey!} program={program} />}
         </div>
     );
 };
 
-export default ShowCampaigns;
+export default Admin;
 

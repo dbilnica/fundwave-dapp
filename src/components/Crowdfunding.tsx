@@ -88,6 +88,7 @@ export const Crowdfunding: FC = () => {
         }
 
     }
+    
     const initAdmin = async () => {
         try {
             const anchProvider = await getProvider();
