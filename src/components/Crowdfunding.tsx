@@ -220,33 +220,6 @@ export const Crowdfunding: FC = () => {
                             </button>
                         </Form.Group>
                     </Form>
-                    <Form id='adminInit' onSubmit={handleAdminInit} className="mt-5">
-                        <Form.Group className='mb-3'>
-                            <FloatingLabel controlId='pubkey' label='Admin Pubkey'>
-                                <Form.Control type='text' placeholder='Enter Admin Pubkey' value={pubkeyInput} onChange={onPubkeyInputChange} />
-                            </FloatingLabel>
-                        </Form.Group>
-
-                        <Form.Group className='mb-3'>
-                            <button className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 hover:from-white hover:to-purple-300 text-black">
-                                Initialize Admin
-                            </button>
-                        </Form.Group>
-                    </Form>
-
-                    <Form id='transferOwnership' onSubmit={handleTransferOwnership} className="mt-5">
-                        <Form.Group className='mb-3'>
-                            <FloatingLabel controlId='pubkey2' label='New Admin Pubkey'>
-                                <Form.Control type='text' placeholder='Enter New Admin Pubkey' value={pubkeyNewAdminInput} onChange={onPubkeyNewAdminInputChange} />
-                            </FloatingLabel>
-                        </Form.Group>
-
-                        <Form.Group className='mb-3'>
-                            <button className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 hover:from-white hover:to-purple-300 text-black">
-                                Transfer Ownership
-                            </button>
-                        </Form.Group>
-                    </Form>
                 </div>
             </>
         </div>

@@ -217,18 +217,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                                         </button>
                                         <button
                                             className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
-                                            onClick={() => reviewCampaign(c.publicKey)}
-                                        >
-                                            Review Campaign
-                                        </button>
-                                        <button
-                                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
-                                            onClick={() => cancelCampaign(c.publicKey)}
-                                        >
-                                            Cancel Campaign
-                                        </button>
-                                        <button
-                                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
                                             onClick={() => withdrawCampaign(c.publicKey)}
                                         >
                                             Withdraw Campaign

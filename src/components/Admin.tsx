@@ -24,6 +24,16 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     const [countdowns, setCountdowns] = useState({});
     const [isLoading, setIsLoading] = useState(true);
 
+    const [pubkeyInput, setPubkeyInput] = useState("");
+    const [pubkeyNewAdminInput, setPubkeyNewAdminInput] = useState("");
+
+    const onPubkeyInputChange = (event) => {
+        setPubkeyInput(event.target.value);
+    };
+
+    const onPubkeyNewAdminInputChange = (event) => {
+        setPubkeyNewAdminInput(event.target.value);
+    };
 
     const calculateTimeRemaining = (endTimestamp) => {
         const now = new Date().getTime();
@@ -103,13 +113,66 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
             console.log("Error while cancelling")
         }
     }
+    const initAdmin = async () => {
+        try {
+            const anchProvider = await getProvider();
+            const program = new Program(idl_object, programID, anchProvider);
+            const signerPubkey = anchProvider.wallet.publicKey;
+
+            const [admin] = await PublicKey.findProgramAddressSync([
+                utils.bytes.utf8.encode("admin_account")
+            ], program.programId)
+
+            console.log(admin.toBase58());
+            console.log(program.programId.toBase58())
+            console.log(signerPubkey.toBase58());
+
+            await program.methods.initializeAdmin(signerPubkey)
+                .accounts({
+                    admin,
+                    user: signerPubkey,
+                    systemProgram: web3.SystemProgram.programId
+                }).rpc();
+            console.log("Admin initialized successfully");
+        } catch (error) {
+            console.error("Error while initializing admin: ", error);
+        }
+    };
+
+    const transferOwnership = async () => {
+        try {
+            const anchProvider = await getProvider();
+            const program = new Program(idl_object, programID, anchProvider);
+            const signerPubkey = anchProvider.wallet.publicKey;
+            const newAdminPubkey = new PublicKey(pubkeyNewAdminInput);
+
+            const [currentAdmin] = await PublicKey.findProgramAddressSync([
+                utils.bytes.utf8.encode("admin_account")
+            ], program.programId)
+
+            console.log(currentAdmin.toBase58());
+            console.log(program.programId.toBase58())
+            console.log(signerPubkey.toBase58());
+
+            await program.methods.transferOwnership(newAdminPubkey)
+                .accounts({
+                    currentAdmin,
+                    user: signerPubkey,
+                }).rpc();
+            console.log("Ownership has been transfered successfully");
+
+        } catch (error) {
+            console.error("Error while transfering the ownership: ", error);
+        }
+    };
+
 
     useEffect(() => {
         const interval = setInterval(() => {
             const newCountdowns = {};
             campaigns.forEach(campaign => {
                 const endTime = new Date(campaign.account.endCampaign.toNumber() * 1000);
-                if (!isNaN(endTime.getTime())) { 
+                if (!isNaN(endTime.getTime())) {
                     newCountdowns[campaign.publicKey.toBase58()] = calculateTimeRemaining(endTime);
                 }
             });
@@ -128,8 +191,53 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
         return <div>Loading campaigns...</div>;
     }
 
+    const handleAdminInit = (e) => {
+        e.preventDefault(); // This will prevent the page from refreshing
+        initAdmin();
+    };
+
+    const handleTransferOwnership = (e) => {
+        e.preventDefault(); // This will prevent the page from refreshing
+        transferOwnership();
+    };
+
     return (
         <>
+            <div className="mb-8">
+                <label htmlFor="admin-pubkey" className="block text-sm font-bold text-xl mb-4">Admin PublicKey</label>
+                <input
+                    id="admin-pubkey"
+                    type="text"
+                    placeholder="Enter public key for admin"
+                    value={pubkeyInput}
+                    onChange={onPubkeyInputChange}
+                    className="mt-1 block w-3/4 md:w-1/2 lg:w-1/3 mx-auto px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                <button
+                    className="mt-4 btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
+                    onClick={handleAdminInit}
+                >
+                    Initialize Admin
+                </button>
+            </div>
+
+            <div className="mb-8">
+                <label htmlFor="new-admin-pubkey" className="block text-sm font-bold text-xl mb-4">New Admin PublicKey</label>
+                <input
+                    id="new-admin-pubkey"
+                    type="text"
+                    placeholder="Enter new admin public key"
+                    value={pubkeyNewAdminInput}
+                    onChange={onPubkeyNewAdminInputChange}
+                    className="mt-1 block w-3/4 md:w-1/2 lg:w-1/3 mx-auto px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                <button
+                    className="mt-4 btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
+                    onClick={handleTransferOwnership}
+                >
+                    Transfer Ownership
+                </button>
+            </div>
             <div className="font-bold text-xl mb-4">Campaigns</div>
             <div className="overflow-x-auto">
                 <table className="min-w-full bg-base-100 shadow overflow-hidden rounded-lg">
@@ -219,4 +327,3 @@ export const Admin: FC = () => {
 };
 
 export default Admin;
-
