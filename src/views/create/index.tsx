@@ -2,7 +2,7 @@
 import { FC } from "react";
 import { Crowdfunding } from '../../components/Crowdfunding';
 
-export const BasicsView: FC = ({ }) => {
+export const CreateCampaignView: FC = ({ }) => {
 
   return (
     <div className="md:hero mx-auto p-4">

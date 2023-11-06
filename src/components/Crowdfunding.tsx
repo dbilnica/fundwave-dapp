@@ -3,9 +3,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { FC, useState, useEffect, ChangeEvent } from 'react';
 import { Program, ProgramAccount, AnchorProvider, web3, utils, BN } from "@project-serum/anchor"
 import { PublicKey } from '@solana/web3.js';
-import { FloatingLabel, Form } from 'react-bootstrap';
 import idl from "./crowdfunding_dapp.json"
-import { program } from '@project-serum/anchor/dist/cjs/native/system';
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string)
@@ -20,9 +18,6 @@ export const Crowdfunding: FC = () => {
     const [description, setDescription] = useState('');
     const [goal, setGoal] = useState<number>(1);
     const [duration, setDuration] = useState<number>(1);
-    //const [adminPubkey, setAdminPubkey] = useState<PublicKey | null>(null);
-    const [pubkeyInput, setPubkeyInput] = useState("");
-    const [pubkeyNewAdminInput, setPubkeyNewAdminInput] = useState("");
 
     //interacting with anchor program 
     const getProvider = async (): Promise<AnchorProvider> => {
@@ -44,15 +39,6 @@ export const Crowdfunding: FC = () => {
         setDuration(e.target.value);
     };
 
-    const onPubkeyInputChange = (event) => {
-        setPubkeyInput(event.target.value);
-    };
-
-    const onPubkeyNewAdminInputChange = (event) => {
-        setPubkeyNewAdminInput(event.target.value);
-    };
-
-
     const createCampaign = async () => {
         try {
             // obtaining provider
@@ -62,7 +48,6 @@ export const Crowdfunding: FC = () => {
             // we need to be sure that we've created a new PDA for our bank app
             // we need to add programId, bump is added automatically
             // we want to fidn the address according to the seeds we are supplying there 
-            // we need to supply bank account string  utils.bytes.utf8.encode("bankaccount") - first string to generate our PDA
             const [campaign] = await PublicKey.findProgramAddressSync([
                 utils.bytes.utf8.encode("crowdfunding"),
                 (await anchProvider).wallet.publicKey.toBuffer() // public key of user that is creating PDA
@@ -79,7 +64,7 @@ export const Crowdfunding: FC = () => {
                     user: anchProvider.wallet.publicKey,
                     admin,
                     systemProgram: web3.SystemProgram.programId,
-            }).rpc();
+                }).rpc();
             console.log("Duration of the campaign is" + duration.toString())
             console.log("Wow, new campaign was created!" + campaign.toString())
 
@@ -88,140 +73,71 @@ export const Crowdfunding: FC = () => {
         }
 
     }
-    
-    const initAdmin = async () => {
-        try {
-            const anchProvider = await getProvider();
-            const program = new Program(idl_object, programID, anchProvider);
-            const signerPubkey = anchProvider.wallet.publicKey;
-
-            const [admin] = await PublicKey.findProgramAddressSync([
-                utils.bytes.utf8.encode("admin_account")
-            ], program.programId)
-
-            console.log(admin.toBase58());
-            console.log(program.programId.toBase58())
-            console.log(signerPubkey.toBase58());
-
-            await program.methods.initializeAdmin(signerPubkey)
-                .accounts({
-                    admin,
-                    user: signerPubkey,
-                    systemProgram: web3.SystemProgram.programId
-            }).rpc();
-            console.log("Admin initialized successfully");
-        } catch (error) {
-            console.error("Error while initializing admin: ", error);
-        }
-    };
-
-    const transferOwnership = async () => {
-        try {
-            const anchProvider = await getProvider();
-            const program = new Program(idl_object, programID, anchProvider);
-            const signerPubkey = anchProvider.wallet.publicKey;
-            const newAdminPubkey = new PublicKey(pubkeyNewAdminInput);
-
-            const [currentAdmin] = await PublicKey.findProgramAddressSync([
-                utils.bytes.utf8.encode("admin_account")
-            ], program.programId)
-
-            console.log(currentAdmin.toBase58());
-            console.log(program.programId.toBase58())
-            console.log(signerPubkey.toBase58());
-
-            await program.methods.transferOwnership(newAdminPubkey)
-                .accounts({
-                    currentAdmin,
-                    user: signerPubkey,
-            }).rpc();
-            console.log("Ownership has been transfered successfully");
-
-        } catch (error) {
-            console.error("Error while transfering the ownership: ", error);
-        }
-    };
-
-
-    /*const getCampaigns = async () => {
-        const anchProvider = await getProvider()
-        const program = new Program(idl_object, programID, anchProvider)
-
-        try {
-            Promise.all(
-                (await connection.getProgramAccounts(programID)).map(async (account) => {
-                    const campaignData = await program.account.campaign.fetch(account.pubkey);
-                    return {
-                        publicKey: account.pubkey,
-                        account: campaignData
-                    };
-                })
-            ).then((campaigns: ProgramAccount[]) => {
-                console.log(campaigns);
-                setCampaigns(campaigns);
-            });
-
-
-        }
-        catch (error) {
-            console.error("Error while getting the campaigns")
-        }
-    }*/
 
     //publicKey is the PDA where we are going to deposit money
     const handleSubmit = async (e) => {
         e.preventDefault(); // This will prevent the page from refreshing
         createCampaign();
     }
-    
-    // Handler function when 'Initialize Admin' button is clicked
-    const handleAdminInit = (e) => {
-        e.preventDefault(); // This will prevent the page from refreshing
-        initAdmin();
-    };
-
-    const handleTransferOwnership = (e) => {
-        e.preventDefault(); // This will prevent the page from refreshing
-        transferOwnership();
-    };
 
     return (
-        <div className="flex justify-center item-center h-screen">
-            <>
-                <div className="relative group">
-                    <Form id='create' onSubmit={handleSubmit}>
-                        <Form.Group className='mb-3'>
-                            <FloatingLabel controlId='name' label='Name'>
-                                <Form.Control type='text' placeholder='Name of the campaign' value={name} onChange={onNameChange} />
-                            </FloatingLabel>
-                        </Form.Group>
-                        <Form.Group className='mb-3'>
-                            <FloatingLabel controlId='description' label='Description'>
-                                <Form.Control as='textarea' placeholder='Description of the campaign' style={{ height: '150px' }} value={description} onChange={onDescriptionChange} />
-                            </FloatingLabel>
-                        </Form.Group>
-                        <Form.Group className='mb-3'>
-                            <FloatingLabel
-                                controlId='goal' label='Goal'>
-                                <Form.Control as='input' placeholder='Goal of the campaign' value={goal} onChange={onGoalChange} />
-                            </FloatingLabel>
-                        </Form.Group>
-                        <Form.Group className='mb-3'>
-                            <FloatingLabel
-                                controlId='duration' label='Duration'>
-                                <Form.Control as='input' placeholder='Duration of the campaign' value={duration} onChange={onDurationChange} />
-                            </FloatingLabel>
-                        </Form.Group>
-                        <Form.Group className='mb-3'>
-                            <button className="group btn animate-pulse bg-gradient-to-br from-indigo-500 to-fuchsia-500 hover:from-white hover:to-purple-300 text-black" type='submit'>
-                                <span className="block group-disabled:hidden">
-                                    Create Campaign
-                                </span>
-                            </button>
-                        </Form.Group>
-                    </Form>
-                </div>
-            </>
+        <div className='campaigns-create p-5'>
+            <div className="font-bold text-xl mb-4">Create Campaign</div>
+            <div className="overflow-hidden rounded-lg shadow-lg">
+                <form id='create' onSubmit={handleSubmit} className="bg-base-100 p-6">
+                    <div className="mb-6">
+                        <label htmlFor='name' className="block text-sm font-bold mb-2 uppercase tracking-wider">Name</label>
+                        <input
+                            id='name'
+                            type='text'
+                            placeholder='Name of the campaign'
+                            className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
+                            value={name}
+                            onChange={onNameChange}
+                        />
+                    </div>
+                    <div className="mb-6">
+                        <label htmlFor='description' className="block text-sm font-bold mb-2 uppercase tracking-wider">Description</label>
+                        <textarea
+                            id='description'
+                            placeholder='Description of the campaign'
+                            className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
+                            value={description}
+                            onChange={onDescriptionChange}
+                        />
+                    </div>
+                    <div className="mb-6">
+                        <label htmlFor='goal' className="block text-sm font-bold mb-2 uppercase tracking-wider">Goal</label>
+                        <input
+                            id='goal'
+                            type='number'
+                            placeholder='Goal'
+                            className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
+                            value={goal}
+                            onChange={onGoalChange}
+                        />
+                    </div>
+                    <div className="mb-6">
+                        <label htmlFor='duration' className="block text-sm font-bold mb-2 uppercase tracking-wider">Duration</label>
+                        <input
+                            id='duration'
+                            type='number'
+                            placeholder='Duration in days'
+                            className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
+                            value={duration}
+                            onChange={onDurationChange}
+                        />
+                    </div>
+                    <div className="flex justify-center mt-6">
+                        <button
+                            type='submit'
+                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white px-6 py-3 rounded-md shadow-sm hover:bg-gradient-to-bl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-200"
+                        >
+                            Create Campaign
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    );
+    );     
 };
