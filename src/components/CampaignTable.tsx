@@ -1,7 +1,6 @@
 import { useEffect, useState, FC } from 'react';
 import { BN, Program, ProgramAccount, AnchorProvider, web3, utils, getProvider } from '@project-serum/anchor';
 import { PublicKey } from '@solana/web3.js';
-import { Table, Button } from 'react-bootstrap';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import idl from "./crowdfunding_dapp.json";
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
@@ -51,7 +50,25 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
     const getAllCampaigns = async () => {
         try {
             const fetchedCampaigns = await program.account.campaign.all();
-            setCampaigns(fetchedCampaigns);
+
+            const currentTime = new Date().getTime();
+
+            // Filter out ended and ongoing campaigns
+            const ongoingCampaigns = fetchedCampaigns.filter(campaign => 
+                new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() > currentTime
+            );
+            const endedCampaigns = fetchedCampaigns.filter(campaign => 
+                new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() <= currentTime
+            );
+    
+            // Sort ongoing campaigns by end time, soonest first
+            ongoingCampaigns.sort((a, b) => {
+                return a.account.endCampaign.toNumber() - b.account.endCampaign.toNumber();
+            });
+
+            const sortedCampaigns = ongoingCampaigns.concat(endedCampaigns);
+
+            setCampaigns(sortedCampaigns);
             setIsLoading(false);
         } catch (error) {
             setIsLoading(false);
@@ -75,51 +92,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
             setTimeout(getAllCampaigns, 2000);
         } catch (error) {
             console.log("Error while supporting")
-        }
-    }
-
-    const reviewCampaign = async (publicKey) => {
-        try {
-            const anchProvider = await getProvider();
-            const program = new Program(idl_object, programID, anchProvider)
-
-            const [admin] = await PublicKey.findProgramAddressSync([
-                utils.bytes.utf8.encode("admin_account")
-            ], program.programId)
-
-            await program.methods.reviewCampaign()
-                .accounts({
-                    campaign: publicKey,
-                    admin,
-                    user: anchProvider.wallet.publicKey,
-
-                }).rpc();
-            console.log("Campaign has been successfully reviewed " + publicKey)
-        } catch (error) {
-            console.log("Error while reviewing")
-        }
-    }
-
-    const cancelCampaign = async (publicKey) => {
-        try {
-            const anchProvider = await getProvider();
-            const program = new Program(idl_object, programID, anchProvider)
-
-            const [admin] = await PublicKey.findProgramAddressSync([
-                utils.bytes.utf8.encode("admin_account")
-            ], program.programId)
-
-            await program.methods.cancelCampaign()
-                .accounts({
-                    campaign: publicKey,
-                    admin,
-                    user: anchProvider.wallet.publicKey,
-
-                }).rpc();
-            console.log("Campaign has been successfully canceled " + publicKey)
-
-        } catch (error) {
-            console.log("Error while cancelling")
         }
     }
 

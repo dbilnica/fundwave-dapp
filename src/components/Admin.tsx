@@ -61,7 +61,25 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     const getAllCampaigns = async () => {
         try {
             const fetchedCampaigns = await program.account.campaign.all();
-            setCampaigns(fetchedCampaigns);
+
+            const currentTime = new Date().getTime();
+
+            // Filter out ended and ongoing campaigns
+            const ongoingCampaigns = fetchedCampaigns.filter(campaign => 
+                new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() > currentTime
+            );
+            const endedCampaigns = fetchedCampaigns.filter(campaign => 
+                new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() <= currentTime
+            );
+    
+            // Sort ongoing campaigns by end time, soonest first
+            ongoingCampaigns.sort((a, b) => {
+                return a.account.endCampaign.toNumber() - b.account.endCampaign.toNumber();
+            });
+
+            const sortedCampaigns = ongoingCampaigns.concat(endedCampaigns);
+
+            setCampaigns(sortedCampaigns);
             setIsLoading(false);
         } catch (error) {
             setIsLoading(false);
