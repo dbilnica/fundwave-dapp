@@ -145,7 +145,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
             console.log(program.programId.toBase58())
             console.log(signerPubkey.toBase58());
 
-            await program.methods.initializeAdmin(signerPubkey)
+            await program.methods.initializeAdmin()
                 .accounts({
                     admin,
                     user: signerPubkey,
@@ -222,15 +222,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     return (
         <>
             <div className="mb-8">
-                <label htmlFor="admin-pubkey" className="block text-sm font-bold text-xl mb-4">Admin PublicKey</label>
-                <input
-                    id="admin-pubkey"
-                    type="text"
-                    placeholder="Enter public key for admin"
-                    value={pubkeyInput}
-                    onChange={onPubkeyInputChange}
-                    className="mt-1 block w-3/4 md:w-1/2 lg:w-1/3 mx-auto px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                />
+                <label htmlFor="admin-pubkey" className="block text-sm font-bold text-xl mb-4">Admin Initialization Button </label>
                 <button
                     className="mt-4 btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
                     onClick={handleAdminInit}

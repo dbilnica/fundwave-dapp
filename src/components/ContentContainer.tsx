@@ -33,21 +33,21 @@ export const ContentContainer: React.FC<Props> = ({ children }) => {
               label="Create Campaign"
               href="/create"
             />
-            <li>
-              <NavElement
-                label="Campaigns"
-                href="/campaigns"
-              />
-            </li>
-            <li>
-              <NavElement
-                label="Admin"
-                href="/admin"
-              />
-            </li>
+          </li>
+          <li>
+            <NavElement
+              label="Campaigns"
+              href="/campaigns"
+            />
+          </li>
+          <li>
+            <NavElement
+              label="Admin"
+              href="/admin"
+            />
           </li>
         </ul>
       </div>
-    </div>
+    </div >
   );
 };

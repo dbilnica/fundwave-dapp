@@ -59,7 +59,7 @@
           "isSigner": false
         },
         {
-          "name": "user",
+          "name": "adminPubkey",
           "isMut": true,
           "isSigner": true
         }
@@ -80,7 +80,7 @@
           "isSigner": false
         },
         {
-          "name": "user",
+          "name": "adminPubkey",
           "isMut": true,
           "isSigner": true
         }
@@ -106,12 +106,7 @@
           "isSigner": false
         }
       ],
-      "args": [
-        {
-          "name": "adminPubkey",
-          "type": "publicKey"
-        }
-      ]
+      "args": []
     },
     {
       "name": "supportCampaign",
@@ -148,17 +143,12 @@
           "isSigner": false
         },
         {
-          "name": "user",
+          "name": "owner",
           "isMut": true,
           "isSigner": true
         }
       ],
-      "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
-      ]
+      "args": []
     },
     {
       "name": "transferOwnership",
@@ -169,7 +159,7 @@
           "isSigner": false
         },
         {
-          "name": "user",
+          "name": "adminPubkey",
           "isMut": true,
           "isSigner": true
         }
@@ -205,6 +195,14 @@
             "type": "u64"
           },
           {
+            "name": "pledgers",
+            "type": {
+              "vec": {
+                "defined": "Pledgers"
+              }
+            }
+          },
+          {
             "name": "duration",
             "type": "i64"
           },
@@ -223,6 +221,10 @@
           {
             "name": "isPledged",
             "type": "bool"
+          },
+          {
+            "name": "isWithdrawn",
+            "type": "bool"
           }
         ]
       }
@@ -239,6 +241,24 @@
           {
             "name": "isInitialized",
             "type": "bool"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "Pledgers",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pledgerPubkey",
+            "type": "publicKey"
+          },
+          {
+            "name": "pledgedAmount",
+            "type": "u64"
           }
         ]
       }
@@ -309,9 +329,14 @@
       "code": 6012,
       "name": "UnauthorizedUser",
       "msg": "You do not have the necessary permissions to perform this action."
+    },
+    {
+      "code": 6013,
+      "name": "WithdrawnCampaign",
+      "msg": "You cannot donate to this campaign. The campaign has successfully ended."
     }
   ],
   "metadata": {
-    "address": "eC6ZDbhTsp6kFECv5BqTu6hsCEu5sJHKGBFhiNcXpoj"
+    "address": "CKqshckaFeDrqUPCNiCYaaVCF5cZAypP2ByHbtEK9X3u"
   }
 }

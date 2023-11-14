@@ -4,6 +4,8 @@ import { FC, useState, useEffect, ChangeEvent } from 'react';
 import { Program, ProgramAccount, AnchorProvider, web3, utils, BN } from "@project-serum/anchor"
 import { PublicKey } from '@solana/web3.js';
 import idl from "./crowdfunding_dapp.json"
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string)
@@ -19,6 +21,13 @@ export const Crowdfunding: FC = () => {
     const [goal, setGoal] = useState<number>(1);
     const [duration, setDuration] = useState<number>(1);
 
+    const clearForm = () => {
+        setName('');
+        setDescription('');
+        setGoal(1);
+        setDuration(1);
+    };
+    
     //interacting with anchor program 
     const getProvider = async (): Promise<AnchorProvider> => {
         //actual connection to the cluster, where is snart contract deployed
@@ -43,14 +52,12 @@ export const Crowdfunding: FC = () => {
         try {
             // obtaining provider
             const anchProvider = await getProvider();
+            // we need to add programId, bump is added automatically
             const program = new Program(idl_object, programID, anchProvider)
 
-            // we need to be sure that we've created a new PDA for our bank app
-            // we need to add programId, bump is added automatically
-            // we want to fidn the address according to the seeds we are supplying there 
             const [campaign] = await PublicKey.findProgramAddressSync([
                 utils.bytes.utf8.encode("crowdfunding"),
-                (await anchProvider).wallet.publicKey.toBuffer() // public key of user that is creating PDA
+                (await anchProvider).wallet.publicKey.toBuffer() 
             ], program.programId)
 
             const [admin] = await PublicKey.findProgramAddressSync([
@@ -58,25 +65,27 @@ export const Crowdfunding: FC = () => {
             ], program.programId)
 
             await program.methods.createCampaign(name, description, new BN(goal), new BN(duration))
-                // we need to add all the accounts we are working with 
                 .accounts({
                     campaign,
                     user: anchProvider.wallet.publicKey,
                     admin,
                     systemProgram: web3.SystemProgram.programId,
                 }).rpc();
+                clearForm();
+                toast.success("Campaign successfully created!");
             console.log("Duration of the campaign is" + duration.toString())
             console.log("Wow, new campaign was created!" + campaign.toString())
 
         } catch (error) {
+            toast.error("Failed to create campaign.");
             console.log("Error while creating campaign ;( " + error)
         }
 
     }
 
-    //publicKey is the PDA where we are going to deposit money
+
     const handleSubmit = async (e) => {
-        e.preventDefault(); // This will prevent the page from refreshing
+        e.preventDefault(); 
         createCampaign();
     }
 
@@ -84,6 +93,7 @@ export const Crowdfunding: FC = () => {
         <div className='campaigns-create p-5'>
             <div className="font-bold text-xl mb-4">Create Campaign</div>
             <div className="overflow-hidden rounded-lg shadow-lg">
+            <ToastContainer position='top-center'/>
                 <form id='create' onSubmit={handleSubmit} className="bg-base-100 p-6">
                     <div className="mb-6">
                         <label htmlFor='name' className="block text-sm font-bold mb-2 uppercase tracking-wider">Name</label>
@@ -91,7 +101,7 @@ export const Crowdfunding: FC = () => {
                             id='name'
                             type='text'
                             placeholder='Name of the campaign'
-                            className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
+                            className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200 text-black "
                             value={name}
                             onChange={onNameChange}
                         />
@@ -101,7 +111,7 @@ export const Crowdfunding: FC = () => {
                         <textarea
                             id='description'
                             placeholder='Description of the campaign'
-                            className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
+                            className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200 text-black"
                             value={description}
                             onChange={onDescriptionChange}
                         />
@@ -112,7 +122,7 @@ export const Crowdfunding: FC = () => {
                             id='goal'
                             type='number'
                             placeholder='Goal'
-                            className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
+                            className="w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200 text-black"
                             value={goal}
                             onChange={onGoalChange}
                         />
@@ -123,7 +133,7 @@ export const Crowdfunding: FC = () => {
                             id='duration'
                             type='number'
                             placeholder='Duration in days'
-                            className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
+                            className="w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200 text-black"
                             value={duration}
                             onChange={onDurationChange}
                         />
@@ -131,7 +141,7 @@ export const Crowdfunding: FC = () => {
                     <div className="flex justify-center mt-6">
                         <button
                             type='submit'
-                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white px-6 py-3 rounded-md shadow-sm hover:bg-gradient-to-bl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-200"
+                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white px-6 py-3 rounded-md shadow-sm hover:bg-gradient-to-bl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-200 text-black"
                         >
                             Create Campaign
                         </button>
