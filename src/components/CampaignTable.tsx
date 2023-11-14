@@ -54,13 +54,13 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
             const currentTime = new Date().getTime();
 
             // Filter out ended and ongoing campaigns
-            const ongoingCampaigns = fetchedCampaigns.filter(campaign => 
+            const ongoingCampaigns = fetchedCampaigns.filter(campaign =>
                 new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() > currentTime
             );
-            const endedCampaigns = fetchedCampaigns.filter(campaign => 
+            const endedCampaigns = fetchedCampaigns.filter(campaign =>
                 new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() <= currentTime
             );
-    
+
             // Sort ongoing campaigns by end time, soonest first
             ongoingCampaigns.sort((a, b) => {
                 return a.account.endCampaign.toNumber() - b.account.endCampaign.toNumber();
@@ -141,63 +141,62 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
         <>
             <div className="font-bold text-xl mb-4">Campaigns</div>
             <div className="overflow-x-auto">
-                <table className="min-w-full bg-base-100 shadow overflow-hidden rounded-lg">
+                <table className="bg-base-100 shadow overflow-hidden rounded-lg">
                     <thead className="text-white bg-gradient-to-br from-indigo-500 to-fuchsia-500">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">#</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Description</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Target Amount</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Donated</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">End Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Donate Amount</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">#</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Name</th>
+                     
+                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Target Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Donated</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">End Date</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Donate Amount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
                         </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#5252529f] bg-primary">
-                        {campaigns.map((c, i) => {
-                            const countdown = countdowns[c.publicKey.toBase58()] || {};
-                            return (
-                                <tr key={c.publicKey.toBase58()} className="bg-white text-gray-700">
-                                    <td className="px-6 py-4 whitespace-nowrap">{i + 1}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{c.account.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap truncate">{c.account.description}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{c.account.goal.toString()}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{c.account.pledged.toString()}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {countdowns[c.publicKey.toBase58()] === undefined
-                                            ? <span>Loading...</span>
-                                            : countdowns[c.publicKey.toBase58()].distance > 0
-                                                ? `${countdown.days}d ${countdown.hours}h ${countdown.minutes}m ${countdown.seconds}s`
-                                                : "Campaign ended"}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <input
-                                            type="number"
-                                            className="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
-                                            placeholder="Amount"
-                                            onChange={(e) => setAmount(e.target.value)}
-                                        />
-                                    </td>
+                        </thead>
+                        <tbody className="divide-y divide-[#5252529f] bg-primary">
+                            {campaigns.map((c, i) => {
+                                const countdown = countdowns[c.publicKey.toBase58()] || {};
+                                return (
+                                    <tr key={c.publicKey.toBase58()} className="bg-white text-gray-700">
+                                        <td className="px-2 py-2 whitespace-nowrap">{i + 1}</td>
+                                        <td className="px-2 py-2 whitespace-nowrap">{c.account.name}</td>
+                                        <td className="px-2 py-2 whitespace-nowrap">{c.account.goal.toString()}</td>
+                                        <td className="px-2 py-2 whitespace-nowrap">{c.account.pledged.toString()}</td>
+                                        <td className="px-2 py-2 whitespace-nowrap">
+                                            {countdowns[c.publicKey.toBase58()] === undefined
+                                                ? <span>Loading...</span>
+                                                : countdowns[c.publicKey.toBase58()].distance > 0
+                                                    ? `${countdown.days}d ${countdown.hours}h ${countdown.minutes}m ${countdown.seconds}s`
+                                                    : "Campaign ended"}
+                                        </td>
+                                        <td className="px-2 py-2 whitespace-nowrap">
+                                            <input
+                                                type="number"
+                                                className="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
+                                                placeholder="Amount"
+                                                onChange={(e) => setAmount(e.target.value)}
+                                            />
+                                        </td>
 
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                        <button
-                                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
-                                            onClick={() => supportCampaign(c.publicKey, amount)}
-                                        >
-                                            Pledge
-                                        </button>
-                                        <button
-                                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
-                                            onClick={() => withdrawCampaign(c.publicKey)}
-                                        >
-                                            Withdraw Campaign
-                                        </button>
-                                    </td>
-                                </tr>
-                            )
-                        })}
-                    </tbody>
+                                        <td className="px-2 py-2 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                            <button
+                                                className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
+                                                onClick={() => supportCampaign(c.publicKey, amount)}
+                                            >
+                                                Pledge
+                                            </button>
+                                            <button
+                                                className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
+                                                onClick={() => withdrawCampaign(c.publicKey)}
+                                            >
+                                                Withdraw Campaign
+                                            </button>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
                 </table>
             </div>
         </>

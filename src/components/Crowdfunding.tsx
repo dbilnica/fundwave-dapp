@@ -27,7 +27,7 @@ export const Crowdfunding: FC = () => {
         setGoal(1);
         setDuration(1);
     };
-    
+
     //interacting with anchor program 
     const getProvider = async (): Promise<AnchorProvider> => {
         //actual connection to the cluster, where is snart contract deployed
@@ -57,24 +57,24 @@ export const Crowdfunding: FC = () => {
 
             const [campaign] = await PublicKey.findProgramAddressSync([
                 utils.bytes.utf8.encode("crowdfunding"),
-                (await anchProvider).wallet.publicKey.toBuffer() 
+                (await anchProvider).wallet.publicKey.toBuffer()
             ], program.programId)
 
             const [admin] = await PublicKey.findProgramAddressSync([
                 utils.bytes.utf8.encode("admin_account")
             ], program.programId)
 
-            await program.methods.createCampaign(name, description, new BN(goal), new BN(duration))
+            const durationInSeconds = new BN(duration * 86400)
+            await program.methods.createCampaign(name, description, new BN(goal), durationInSeconds)
                 .accounts({
                     campaign,
                     user: anchProvider.wallet.publicKey,
                     admin,
                     systemProgram: web3.SystemProgram.programId,
                 }).rpc();
-                clearForm();
-                toast.success("Campaign successfully created!");
-            console.log("Duration of the campaign is" + duration.toString())
-            console.log("Wow, new campaign was created!" + campaign.toString())
+            clearForm();
+            toast.success("Campaign successfully created!");
+            console.log("Wow, new campaign was created! " + campaign.toString())
 
         } catch (error) {
             toast.error("Failed to create campaign.");
@@ -83,9 +83,8 @@ export const Crowdfunding: FC = () => {
 
     }
 
-
     const handleSubmit = async (e) => {
-        e.preventDefault(); 
+        e.preventDefault();
         createCampaign();
     }
 
@@ -93,7 +92,7 @@ export const Crowdfunding: FC = () => {
         <div className='campaigns-create p-5'>
             <div className="font-bold text-xl mb-4">Create Campaign</div>
             <div className="overflow-hidden rounded-lg shadow-lg">
-            <ToastContainer position='top-center'/>
+                <ToastContainer position='top-center' />
                 <form id='create' onSubmit={handleSubmit} className="bg-base-100 p-6">
                     <div className="mb-6">
                         <label htmlFor='name' className="block text-sm font-bold mb-2 uppercase tracking-wider">Name</label>
@@ -116,28 +115,37 @@ export const Crowdfunding: FC = () => {
                             onChange={onDescriptionChange}
                         />
                     </div>
-                    <div className="mb-6">
+                    <div className="flex justify-between mb-6">
+                    <div className="flex-1 mr-2">
                         <label htmlFor='goal' className="block text-sm font-bold mb-2 uppercase tracking-wider">Goal</label>
                         <input
                             id='goal'
                             type='number'
+                            min='1'
                             placeholder='Goal'
-                            className="w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200 text-black"
+                            className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200 text-black"
                             value={goal}
                             onChange={onGoalChange}
                         />
                     </div>
-                    <div className="mb-6">
-                        <label htmlFor='duration' className="block text-sm font-bold mb-2 uppercase tracking-wider">Duration</label>
-                        <input
-                            id='duration'
-                            type='number'
-                            placeholder='Duration in days'
-                            className="w-1/2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200 text-black"
-                            value={duration}
-                            onChange={onDurationChange}
-                        />
+                    <div className="flex-1 ml-2 flex items-center">
+                        <div className="flex-1">
+                            <label htmlFor='duration' className="block text-sm font-bold mb-2 uppercase tracking-wider">
+                                Duration
+                            </label>
+                            <input
+                                id='duration'
+                                type='number'
+                                min="1"
+                                placeholder='Duration in days'
+                                className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200 text-black"
+                                value={duration}
+                                onChange={onDurationChange}
+                            />
+                        </div>
+                        <span className="text-sm ml-1">days</span>
                     </div>
+                </div>
                     <div className="flex justify-center mt-6">
                         <button
                             type='submit'
@@ -149,5 +157,5 @@ export const Crowdfunding: FC = () => {
                 </form>
             </div>
         </div>
-    );     
+    );
 };

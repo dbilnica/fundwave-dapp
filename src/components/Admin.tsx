@@ -255,7 +255,6 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">#</th>
                             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Description</th>
                             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Target Amount</th>
                             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Donated</th>
                             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">End Date</th>
@@ -269,7 +268,6 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
                                 <tr key={c.publicKey.toBase58()} className="bg-white text-gray-700">
                                     <td className="px-6 py-4 whitespace-nowrap">{i + 1}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{c.account.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap truncate">{c.account.description}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{c.account.goal.toString()}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{c.account.pledged.toString()}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
