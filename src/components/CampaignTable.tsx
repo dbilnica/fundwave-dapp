@@ -4,6 +4,8 @@ import { PublicKey } from '@solana/web3.js';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import idl from "./crowdfunding_dapp.json";
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { publicKey } from '@project-serum/anchor/dist/cjs/utils';
+import {Card, CardHeader, CardBody, Image} from "@nextui-org/react";
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string)
@@ -81,7 +83,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
             const anchProvider = await getProvider();
             const program = new Program(idl_object, programID, anchProvider)
 
-            await program.methods.supportCampaign(new BN(amount))
+            await program.methods.campaignSupport(new BN(amount))
                 .accounts({
                     campaign: publicKey,
                     user: anchProvider.wallet.publicKey,
@@ -95,12 +97,29 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
         }
     }
 
+    const cancelSupport = async (publicKey) => {
+        try {
+            const anchProvider = await getProvider();
+            const program = new Program(idl_object, programID, anchProvider)
+
+            await program.methods.supportCancel()
+                .accounts({
+                    campaign: publicKey,
+                    user: anchProvider.wallet.publicKey,
+                }).rpc();
+            console.log("Campaign support been successfully canceled")
+            setTimeout(getAllCampaigns, 2000);
+        } catch (error) {
+            console.log("Error while cancelling support")
+        }
+    }
+
     const withdrawCampaign = async (publicKey) => {
         try {
             const anchProvider = await getProvider();
             const program = new Program(idl_object, programID, anchProvider)
 
-            await program.methods.withdrawCampaign()
+            await program.methods.campaignWithdraw()
                 .accounts({
                     campaign: publicKey,
                     user: anchProvider.wallet.publicKey,
@@ -136,8 +155,41 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
     if (isLoading) {
         return <div>Loading campaigns...</div>;
     }
+    // CampaignCard Component
+    const CampaignCard: FC<{ campaign: ProgramAccount }> = ({ campaign }) => {
+        const countdown = calculateTimeRemaining(
+            new Date(campaign.account.endCampaign.toNumber() * 1000)
+        );
+
+        return (
+            <div className="campaign-card">
+                <div className="card-header">{campaign.account.name}</div>
+                <div className="card-body">
+                    <div className="campaign-goal">{campaign.account.goal.toString()} SOL</div>
+                    <div className="campaign-pledged">{campaign.account.pledged.toString()} SOL</div>
+                    <div className="campaign-end-date">
+                        {countdown.distance > 0
+                            ? `${countdown.days}d ${countdown.hours}h ${countdown.minutes}m ${countdown.seconds}s`
+                            : "Campaign ended"}
+                    </div>
+                // Include other details and actions
+                </div>
+            </div>
+        );
+    };
 
     return (
+        <>
+            <div className="font-bold text-xl mb-4">Campaigns</div>
+            <div className="campaigns-grid">
+                {campaigns.map((c) => (
+                    <CampaignCard key={c.publicKey.toBase58()} campaign={c} />
+                ))}
+            </div>
+        </>
+    );
+
+    /*return (
         <>
             <div className="font-bold text-xl mb-4">Campaigns</div>
             <div className="overflow-x-auto">
@@ -146,61 +198,67 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                         <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">#</th>
                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Name</th>
-                     
+
                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Target Amount</th>
                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Donated</th>
                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">End Date</th>
                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Donate Amount</th>
                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
                         </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#5252529f] bg-primary">
-                            {campaigns.map((c, i) => {
-                                const countdown = countdowns[c.publicKey.toBase58()] || {};
-                                return (
-                                    <tr key={c.publicKey.toBase58()} className="bg-white text-gray-700">
-                                        <td className="px-2 py-2 whitespace-nowrap">{i + 1}</td>
-                                        <td className="px-2 py-2 whitespace-nowrap">{c.account.name}</td>
-                                        <td className="px-2 py-2 whitespace-nowrap">{c.account.goal.toString()}</td>
-                                        <td className="px-2 py-2 whitespace-nowrap">{c.account.pledged.toString()}</td>
-                                        <td className="px-2 py-2 whitespace-nowrap">
-                                            {countdowns[c.publicKey.toBase58()] === undefined
-                                                ? <span>Loading...</span>
-                                                : countdowns[c.publicKey.toBase58()].distance > 0
-                                                    ? `${countdown.days}d ${countdown.hours}h ${countdown.minutes}m ${countdown.seconds}s`
-                                                    : "Campaign ended"}
-                                        </td>
-                                        <td className="px-2 py-2 whitespace-nowrap">
-                                            <input
-                                                type="number"
-                                                className="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
-                                                placeholder="Amount"
-                                                onChange={(e) => setAmount(e.target.value)}
-                                            />
-                                        </td>
+                    </thead>
+                    <tbody className="divide-y divide-[#5252529f] bg-primary">
+                        {campaigns.map((c, i) => {
+                            const countdown = countdowns[c.publicKey.toBase58()] || {};
+                            return (
+                                <tr key={c.publicKey.toBase58()} className="bg-white text-gray-700">
+                                    <td className="px-2 py-2 whitespace-nowrap">{i + 1}</td>
+                                    <td className="px-2 py-2 whitespace-nowrap">{c.account.name}</td>
+                                    <td className="px-2 py-2 whitespace-nowrap">{c.account.goal.toString()}</td>
+                                    <td className="px-2 py-2 whitespace-nowrap">{c.account.pledged.toString()}</td>
+                                    <td className="px-2 py-2 whitespace-nowrap">
+                                        {countdowns[c.publicKey.toBase58()] === undefined
+                                            ? <span>Loading...</span>
+                                            : countdowns[c.publicKey.toBase58()].distance > 0
+                                                ? `${countdown.days}d ${countdown.hours}h ${countdown.minutes}m ${countdown.seconds}s`
+                                                : "Campaign ended"}
+                                    </td>
+                                    <td className="px-2 py-2 whitespace-nowrap">
+                                        <input
+                                            type="number"
+                                            className="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
+                                            placeholder="Amount"
+                                            onChange={(e) => setAmount(e.target.value)}
+                                        />
+                                    </td>
 
-                                        <td className="px-2 py-2 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                            <button
-                                                className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
-                                                onClick={() => supportCampaign(c.publicKey, amount)}
-                                            >
-                                                Pledge
-                                            </button>
-                                            <button
-                                                className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
-                                                onClick={() => withdrawCampaign(c.publicKey)}
-                                            >
-                                                Withdraw Campaign
-                                            </button>
-                                        </td>
-                                    </tr>
-                                )
-                            })}
-                        </tbody>
+                                    <td className="px-2 py-2 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                        <button
+                                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
+                                            onClick={() => supportCampaign(c.publicKey, amount)}
+                                        >
+                                            Pledge
+                                        </button>
+                                        <button
+                                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
+                                            onClick={() => cancelSupport(c.publicKey)}
+                                        >
+                                            Cancel Pledge
+                                        </button>
+                                        <button
+                                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
+                                            onClick={() => withdrawCampaign(c.publicKey)}
+                                        >
+                                            Withdraw Campaign
+                                        </button>
+                                    </td>
+                                </tr>
+                            )
+                        })}
+                    </tbody>
                 </table>
             </div>
         </>
-    );
+    );*/
 
 };
 

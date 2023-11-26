@@ -65,7 +65,7 @@ export const Crowdfunding: FC = () => {
             ], program.programId)
 
             const durationInSeconds = new BN(duration * 86400)
-            await program.methods.createCampaign(name, description, new BN(goal), durationInSeconds)
+            await program.methods.campaignCreate(name, description, new BN(goal), durationInSeconds)
                 .accounts({
                     campaign,
                     user: anchProvider.wallet.publicKey,

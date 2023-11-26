@@ -3,7 +3,44 @@
   "name": "crowdfunding_dapp",
   "instructions": [
     {
-      "name": "createCampaign",
+      "name": "campaignCancel",
+      "accounts": [
+        {
+          "name": "campaign",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "adminPubkey",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "supportCancel",
+      "accounts": [
+        {
+          "name": "campaign",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "campaignCreate",
       "accounts": [
         {
           "name": "campaign",
@@ -46,49 +83,7 @@
       ]
     },
     {
-      "name": "reviewCampaign",
-      "accounts": [
-        {
-          "name": "campaign",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "admin",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "adminPubkey",
-          "isMut": true,
-          "isSigner": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "cancelCampaign",
-      "accounts": [
-        {
-          "name": "campaign",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "admin",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "adminPubkey",
-          "isMut": true,
-          "isSigner": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "initializeAdmin",
+      "name": "adminInitialize",
       "accounts": [
         {
           "name": "admin",
@@ -109,7 +104,28 @@
       "args": []
     },
     {
-      "name": "supportCampaign",
+      "name": "campaignReview",
+      "accounts": [
+        {
+          "name": "campaign",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "adminPubkey",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "campaignSupport",
       "accounts": [
         {
           "name": "campaign",
@@ -135,23 +151,7 @@
       ]
     },
     {
-      "name": "withdrawCampaign",
-      "accounts": [
-        {
-          "name": "campaign",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "owner",
-          "isMut": true,
-          "isSigner": true
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "transferOwnership",
+      "name": "ownershipTransfer",
       "accounts": [
         {
           "name": "currentAdmin",
@@ -170,6 +170,22 @@
           "type": "publicKey"
         }
       ]
+    },
+    {
+      "name": "campaignWithdraw",
+      "accounts": [
+        {
+          "name": "campaign",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "owner",
+          "isMut": true,
+          "isSigner": true
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -334,9 +350,29 @@
       "code": 6013,
       "name": "WithdrawnCampaign",
       "msg": "You cannot donate to this campaign. The campaign has successfully ended."
+    },
+    {
+      "code": 6014,
+      "name": "CampaignStillActive",
+      "msg": "Refunding funds is not possible. The campaign is still active"
+    },
+    {
+      "code": 6015,
+      "name": "CampaignAlreadyWithdrawed",
+      "msg": "The campaign has been already withdrawed"
+    },
+    {
+      "code": 6016,
+      "name": "UnspecifiedError",
+      "msg": "Unspecified Error"
+    },
+    {
+      "code": 6017,
+      "name": "InsufficientFundsForRent",
+      "msg": "The pledge cannot be canceled due to insufficient funds for rent"
     }
   ],
   "metadata": {
-    "address": "CKqshckaFeDrqUPCNiCYaaVCF5cZAypP2ByHbtEK9X3u"
+    "address": "7j4TY1JEGGtiyJEdufA2rQrcVPHuVKdrFMCR7T7Ntur1"
   }
 }

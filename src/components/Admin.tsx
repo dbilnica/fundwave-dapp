@@ -1,10 +1,12 @@
 import { useEffect, useState, FC } from 'react';
 import { BN, Program, ProgramAccount, AnchorProvider, web3, utils, getProvider } from '@project-serum/anchor';
-import { PublicKey } from '@solana/web3.js';
+import { Account, PublicKey } from '@solana/web3.js';
 import { Table, Button } from 'react-bootstrap';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import idl from "./crowdfunding_dapp.json";
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string)
@@ -65,13 +67,13 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
             const currentTime = new Date().getTime();
 
             // Filter out ended and ongoing campaigns
-            const ongoingCampaigns = fetchedCampaigns.filter(campaign => 
+            const ongoingCampaigns = fetchedCampaigns.filter(campaign =>
                 new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() > currentTime
             );
-            const endedCampaigns = fetchedCampaigns.filter(campaign => 
+            const endedCampaigns = fetchedCampaigns.filter(campaign =>
                 new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() <= currentTime
             );
-    
+
             // Sort ongoing campaigns by end time, soonest first
             ongoingCampaigns.sort((a, b) => {
                 return a.account.endCampaign.toNumber() - b.account.endCampaign.toNumber();
@@ -96,13 +98,16 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
                 utils.bytes.utf8.encode("admin_account")
             ], program.programId)
 
-            await program.methods.reviewCampaign()
+            const campaignToReview = campaigns.find(c => c.publicKey.toBase58() === publicKey.toBase58());
+            await program.methods.campaignReview()
                 .accounts({
                     campaign: publicKey,
                     admin,
                     user: anchProvider.wallet.publicKey,
 
                 }).rpc();
+            toast.success(`Campaign "${campaignToReview.account.name}" has been successfully reviewed!`);
+            console.log(`Campaign "${campaignToReview.account.name}" has been successfully reviewed!`);
             console.log("Campaign has been successfully reviewed " + publicKey)
         } catch (error) {
             console.log("Error while reviewing")
@@ -118,16 +123,19 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
                 utils.bytes.utf8.encode("admin_account")
             ], program.programId)
 
-            await program.methods.cancelCampaign()
+            const campaignToCancel = campaigns.find(c => c.publicKey.toBase58() === publicKey.toBase58());
+
+            await program.methods.campaignCancel()
                 .accounts({
                     campaign: publicKey,
                     admin,
                     user: anchProvider.wallet.publicKey,
 
                 }).rpc();
-            console.log("Campaign has been successfully canceled " + publicKey)
-
+            toast.success(`Campaign "${campaignToCancel.account.name}" has been successfully canceled!`);
+            console.log(`Campaign "${campaignToCancel.account.name}" has been successfully canceled!`);
         } catch (error) {
+            toast.error("Campaign has been successfully canceled " + publicKey);
             console.log("Error while cancelling")
         }
     }
@@ -145,14 +153,16 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
             console.log(program.programId.toBase58())
             console.log(signerPubkey.toBase58());
 
-            await program.methods.initializeAdmin()
+            await program.methods.adminInitialize()
                 .accounts({
                     admin,
                     user: signerPubkey,
                     systemProgram: web3.SystemProgram.programId
                 }).rpc();
+            toast.success("Admin initialized successfully!");
             console.log("Admin initialized successfully");
         } catch (error) {
+            toast.error("Error while initializing admin!");
             console.error("Error while initializing admin: ", error);
         }
     };
@@ -172,14 +182,16 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
             console.log(program.programId.toBase58())
             console.log(signerPubkey.toBase58());
 
-            await program.methods.transferOwnership(newAdminPubkey)
+            await program.methods.ownershipTransfer(newAdminPubkey)
                 .accounts({
                     currentAdmin,
                     user: signerPubkey,
                 }).rpc();
+            toast.success("Ownership has been transfered successfully!");
             console.log("Ownership has been transfered successfully");
 
         } catch (error) {
+            toast.error("Error while transfering the ownership!");
             console.error("Error while transfering the ownership: ", error);
         }
     };
@@ -221,6 +233,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
 
     return (
         <>
+            <ToastContainer position='top-center' />
             <div className="mb-8">
                 <label htmlFor="admin-pubkey" className="block text-sm font-bold text-xl mb-4">Admin Initialization Button </label>
                 <button
