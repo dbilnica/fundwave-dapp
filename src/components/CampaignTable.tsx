@@ -158,7 +158,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
         return <div>Loading campaigns...</div>;
     }
     // CampaignCard Component
-    const CampaignCard: FC<{ campaign: ProgramAccount }> = ({ campaign }) => {
+    /*const CampaignCard: FC<{ campaign: ProgramAccount }> = ({ campaign }) => {
         const countdown = calculateTimeRemaining(
             new Date(campaign.account.endCampaign.toNumber() * 1000)
         );
@@ -216,9 +216,9 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                 ))}
             </div>
         </>
-    );
+    );*/
 
-    /*return (
+    return (
         <>
             <div className="font-bold text-xl mb-4">Campaigns</div>
             <div className="overflow-x-auto">
@@ -287,7 +287,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                 </table>
             </div>
         </>
-    );*/
+    );
 
 };
 
