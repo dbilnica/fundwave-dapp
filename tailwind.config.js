@@ -2,7 +2,7 @@ module.exports = {
   mode: "jit",
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
-    //"./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: "media",
   theme: {
@@ -11,7 +11,7 @@ module.exports = {
   plugins: [
     require('daisyui'),
     require("@tailwindcss/typography"),
-    //require("@nextui-org/react")
+    require("@nextui-org/react")
   ],
   daisyui: {
     styled: true,

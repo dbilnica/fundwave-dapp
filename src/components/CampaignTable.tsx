@@ -5,7 +5,9 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import idl from "./crowdfunding_dapp.json";
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { publicKey } from '@project-serum/anchor/dist/cjs/utils';
-import {Card, CardHeader, CardBody, Image} from "@nextui-org/react";
+import { Card, CardHeader, CardBody, Image } from "@nextui-org/react";
+import {Button} from '@nextui-org/button'; 
+
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string)
@@ -180,6 +182,33 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
 
     return (
         <>
+            <div>
+            <Button
+      disableRipple
+      className="relative overflow-visible rounded-full hover:-translate-y-1 px-12 shadow-xl bg-background/30 after:content-[''] after:absolute after:rounded-full after:inset-0 after:bg-background/40 after:z-[-1] after:transition after:!duration-500 hover:after:scale-150 hover:after:opacity-0"
+      size="lg"
+    >
+      Press me
+    </Button>
+    </div>
+            <Card className="py-4">
+                <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
+                    <p className="text-tiny uppercase font-bold">Daily Mix</p>
+                    <small className="text-default-500">12 Tracks</small>
+                    <h4 className="font-bold text-large">Frontend Radio</h4>
+                </CardHeader>
+                <CardBody className="overflow-visible py-2">
+                    <Image
+                        alt="Card background"
+                        className="object-cover rounded-xl"
+                        src="/images/hero-card-complete.jpg"
+                        width={270}
+                    />
+                </CardBody>
+            </Card>
+            
+                
+
             <div className="font-bold text-xl mb-4">Campaigns</div>
             <div className="campaigns-grid">
                 {campaigns.map((c) => (
