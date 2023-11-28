@@ -79,6 +79,10 @@
         {
           "name": "duration",
           "type": "i64"
+        },
+        {
+          "name": "imageIpfsHash",
+          "type": "string"
         }
       ]
     },
@@ -200,6 +204,10 @@
           },
           {
             "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "imageIpfsHash",
             "type": "string"
           },
           {
@@ -373,6 +381,6 @@
     }
   ],
   "metadata": {
-    "address": "7j4TY1JEGGtiyJEdufA2rQrcVPHuVKdrFMCR7T7Ntur1"
+    "address": "3Lfnr1Aro4USUtE9kJrRD63r1HzAqShQ5ozdVJhsTT9j"
   }
 }

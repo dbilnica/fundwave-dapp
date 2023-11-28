@@ -5,8 +5,6 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import idl from "./crowdfunding_dapp.json";
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { publicKey } from '@project-serum/anchor/dist/cjs/utils';
-import { Card, CardHeader, CardBody, Image } from "@nextui-org/react";
-import {Button} from '@nextui-org/button'; 
 
 
 const idl_string = JSON.stringify(idl);
@@ -157,6 +155,41 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
     if (isLoading) {
         return <div>Loading campaigns...</div>;
     }
+
+    const CampaignCard: FC<{ campaign: ProgramAccount }> = ({ campaign }) => {
+        const countdown = calculateTimeRemaining(
+            new Date(campaign.account.endCampaign.toNumber() * 1000)
+        );
+    
+        return (
+            <div className="card w-96 bg-base-100 shadow-xl m-2">
+                <figure className="px-10 pt-10">
+                    <img src="https://via.placeholder.com/400x200" alt="Campaign" className="rounded-xl"/>
+                </figure>
+                <div className="card-body">
+                    <h2 className="card-title">{campaign.account.name}</h2>
+                    <p>Goal: {campaign.account.goal.toString()} SOL</p>
+                    <p>Pledged: {campaign.account.pledged.toString()} SOL</p>
+                    <p>End Date: {countdown.days}d {countdown.hours}h {countdown.minutes}m {countdown.seconds}s</p>
+                    <div className="card-actions justify-end">
+                        <button className="btn btn-primary" onClick={() => supportCampaign(campaign.publicKey, amount)}>Pledge</button>
+                        <button className="btn btn-secondary" onClick={() => cancelSupport(campaign.publicKey)}>Cancel Pledge</button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+    return (
+        <>
+            <div className="font-bold text-xl mb-4">Campaigns</div>
+            <div className="flex flex-wrap justify-start">
+                {campaigns.map((c) => (
+                    <CampaignCard key={c.publicKey.toBase58()} campaign={c} />
+                ))}
+            </div>
+        </>
+    );
+    
     // CampaignCard Component
     /*const CampaignCard: FC<{ campaign: ProgramAccount }> = ({ campaign }) => {
         const countdown = calculateTimeRemaining(
@@ -217,9 +250,21 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
             </div>
         </>
     );*/
-
+    /*
     return (
         <>
+
+            <div className="card w-96 bg-base-100 shadow-xl">
+                <figure><img src="https://daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.jpg" alt="Shoes" /></figure>
+                <div className="card-body">
+                    <h2 className="card-title">Shoes!</h2>
+                    <p>If a dog chews shoes whose shoes does he choose?</p>
+                    <div className="card-actions justify-end">
+                        <button className="btn btn-primary">Buy Now</button>
+                    </div>
+                </div>
+            </div>
+
             <div className="font-bold text-xl mb-4">Campaigns</div>
             <div className="overflow-x-auto">
                 <table className="bg-base-100 shadow overflow-hidden rounded-lg">
@@ -287,7 +332,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                 </table>
             </div>
         </>
-    );
+    ); */
 
 };
 

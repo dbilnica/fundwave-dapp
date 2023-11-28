@@ -1,9 +1,6 @@
 module.exports = {
   mode: "jit",
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./src/**/*.{js,jsx,ts,tsx}"],
   darkMode: "media",
   theme: {
     extend: {},
@@ -11,14 +8,13 @@ module.exports = {
   plugins: [
     require('daisyui'),
     require("@tailwindcss/typography"),
-    require("@nextui-org/react")
   ],
   daisyui: {
     styled: true,
     // TODO: Theme needs works
     themes: [
       {
-        'solana': {
+        'solana': { 
           fontFamily: {
             display: ['PT Mono, monospace'],
             body: ['Inter, sans-serif'],
