@@ -132,22 +132,24 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
         }
     }
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const newCountdowns = {};
-            campaigns.forEach(campaign => {
-                const endTime = new Date(campaign.account.endCampaign.toNumber() * 1000);
-                if (!isNaN(endTime.getTime())) {
-                    newCountdowns[campaign.publicKey.toBase58()] = calculateTimeRemaining(endTime);
-                }
-            });
-            setCountdowns(newCountdowns);
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [campaigns]);
-
-
+    const Countdown: FC<{ endTime: number }> = ({ endTime }) => {
+        const [timeLeft, setTimeLeft] = useState(() => calculateTimeRemaining(endTime));
+    
+        useEffect(() => {
+            const timer = setInterval(() => {
+                setTimeLeft(calculateTimeRemaining(endTime));
+            }, 1000);
+    
+            return () => clearInterval(timer);
+        }, [endTime]);
+    
+        return (
+            <div>
+                {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
+            </div>
+        );
+    };
+    
     useEffect(() => {
         getAllCampaigns();
     }, [walletKey, program]);
@@ -157,23 +159,21 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
     }
 
     const CampaignCard: FC<{ campaign: ProgramAccount }> = ({ campaign }) => {
-        const countdown = calculateTimeRemaining(
-            new Date(campaign.account.endCampaign.toNumber() * 1000)
-        );
+        const endTime = new Date(campaign.account.endCampaign.toNumber() * 1000).getTime();
         const ipfsImageUrl = `https://ipfs.io/ipfs/${campaign.account.imageIpfsHash}`;
 
         return (
             <div className="card w-96 bg-base-100 shadow-xl m-2">
                 <figure className="px-10 pt-10">
-                    <img src={ipfsImageUrl} alt="Campaign" className="rounded-xl"/>
+                    <img src={ipfsImageUrl} alt="Campaign" className="rounded-xl" />
                 </figure>
                 <div className="card-body">
                     <h2 className="card-title">{campaign.account.name}</h2>
                     <p>Goal: {campaign.account.goal.toString()} SOL</p>
                     <p>Pledged: {campaign.account.pledged.toString()} SOL</p>
-                    <p>End Date: {countdown.days}d {countdown.hours}h {countdown.minutes}m {countdown.seconds}s</p>
+                    <Countdown endTime={endTime} />
                     <div className="card-actions justify-end">
-                        <button className="btn btn-primary" onClick={() => supportCampaign(campaign.publicKey, amount)}>Pledge</button>
+                        <button className="btn btn-primary" onClick={() => supportCampaign(campaign.publicKey, 14500)}>Pledge</button>
                         <button className="btn btn-secondary" onClick={() => cancelSupport(campaign.publicKey)}>Cancel Pledge</button>
                     </div>
                 </div>
@@ -182,7 +182,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
     };
     return (
         <>
-            <div className="font-bold text-xl mb-4">Campaigns</div>
             <div className="flex flex-wrap justify-start">
                 {campaigns.map((c) => (
                     <CampaignCard key={c.publicKey.toBase58()} campaign={c} />
@@ -190,151 +189,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
             </div>
         </>
     );
-    
-    // CampaignCard Component
-    /*const CampaignCard: FC<{ campaign: ProgramAccount }> = ({ campaign }) => {
-        const countdown = calculateTimeRemaining(
-            new Date(campaign.account.endCampaign.toNumber() * 1000)
-        );
-
-        return (
-            <div className="campaign-card">
-                <div className="card-header">{campaign.account.name}</div>
-                <div className="card-body">
-                    <div className="campaign-goal">{campaign.account.goal.toString()} SOL</div>
-                    <div className="campaign-pledged">{campaign.account.pledged.toString()} SOL</div>
-                    <div className="campaign-end-date">
-                        {countdown.distance > 0
-                            ? `${countdown.days}d ${countdown.hours}h ${countdown.minutes}m ${countdown.seconds}s`
-                            : "Campaign ended"}
-                    </div>
-                // Include other details and actions
-                </div>
-            </div>
-        );
-    };
-
-    return (
-        <>
-            <div>
-            <Button
-      disableRipple
-      className="relative overflow-visible rounded-full hover:-translate-y-1 px-12 shadow-xl bg-background/30 after:content-[''] after:absolute after:rounded-full after:inset-0 after:bg-background/40 after:z-[-1] after:transition after:!duration-500 hover:after:scale-150 hover:after:opacity-0"
-      size="lg"
-    >
-      Press me
-    </Button>
-    </div>
-            <Card className="py-4">
-                <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-                    <p className="text-tiny uppercase font-bold">Daily Mix</p>
-                    <small className="text-default-500">12 Tracks</small>
-                    <h4 className="font-bold text-large">Frontend Radio</h4>
-                </CardHeader>
-                <CardBody className="overflow-visible py-2">
-                    <Image
-                        alt="Card background"
-                        className="object-cover rounded-xl"
-                        src="/images/hero-card-complete.jpg"
-                        width={270}
-                    />
-                </CardBody>
-            </Card>
-            
-                
-
-            <div className="font-bold text-xl mb-4">Campaigns</div>
-            <div className="campaigns-grid">
-                {campaigns.map((c) => (
-                    <CampaignCard key={c.publicKey.toBase58()} campaign={c} />
-                ))}
-            </div>
-        </>
-    );*/
-    /*
-    return (
-        <>
-
-            <div className="card w-96 bg-base-100 shadow-xl">
-                <figure><img src="https://daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.jpg" alt="Shoes" /></figure>
-                <div className="card-body">
-                    <h2 className="card-title">Shoes!</h2>
-                    <p>If a dog chews shoes whose shoes does he choose?</p>
-                    <div className="card-actions justify-end">
-                        <button className="btn btn-primary">Buy Now</button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="font-bold text-xl mb-4">Campaigns</div>
-            <div className="overflow-x-auto">
-                <table className="bg-base-100 shadow overflow-hidden rounded-lg">
-                    <thead className="text-white bg-gradient-to-br from-indigo-500 to-fuchsia-500">
-                        <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">#</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Name</th>
-
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Target Amount</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Donated</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">End Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Donate Amount</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#5252529f] bg-primary">
-                        {campaigns.map((c, i) => {
-                            const countdown = countdowns[c.publicKey.toBase58()] || {};
-                            return (
-                                <tr key={c.publicKey.toBase58()} className="bg-white text-gray-700">
-                                    <td className="px-2 py-2 whitespace-nowrap">{i + 1}</td>
-                                    <td className="px-2 py-2 whitespace-nowrap">{c.account.name}</td>
-                                    <td className="px-2 py-2 whitespace-nowrap">{c.account.goal.toString()}</td>
-                                    <td className="px-2 py-2 whitespace-nowrap">{c.account.pledged.toString()}</td>
-                                    <td className="px-2 py-2 whitespace-nowrap">
-                                        {countdowns[c.publicKey.toBase58()] === undefined
-                                            ? <span>Loading...</span>
-                                            : countdowns[c.publicKey.toBase58()].distance > 0
-                                                ? `${countdown.days}d ${countdown.hours}h ${countdown.minutes}m ${countdown.seconds}s`
-                                                : "Campaign ended"}
-                                    </td>
-                                    <td className="px-2 py-2 whitespace-nowrap">
-                                        <input
-                                            type="number"
-                                            className="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200"
-                                            placeholder="Amount"
-                                            onChange={(e) => setAmount(e.target.value)}
-                                        />
-                                    </td>
-
-                                    <td className="px-2 py-2 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                        <button
-                                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
-                                            onClick={() => supportCampaign(c.publicKey, amount)}
-                                        >
-                                            Pledge
-                                        </button>
-                                        <button
-                                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
-                                            onClick={() => cancelSupport(c.publicKey)}
-                                        >
-                                            Cancel Pledge
-                                        </button>
-                                        <button
-                                            className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
-                                            onClick={() => withdrawCampaign(c.publicKey)}
-                                        >
-                                            Withdraw Campaign
-                                        </button>
-                                    </td>
-                                </tr>
-                            )
-                        })}
-                    </tbody>
-                </table>
-            </div>
-        </>
-    ); */
-
 };
 
 export const ShowCampaigns: FC = () => {
