@@ -160,11 +160,12 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
         const countdown = calculateTimeRemaining(
             new Date(campaign.account.endCampaign.toNumber() * 1000)
         );
-    
+        const ipfsImageUrl = `https://ipfs.io/ipfs/${campaign.account.imageIpfsHash}`;
+
         return (
             <div className="card w-96 bg-base-100 shadow-xl m-2">
                 <figure className="px-10 pt-10">
-                    <img src="https://via.placeholder.com/400x200" alt="Campaign" className="rounded-xl"/>
+                    <img src={ipfsImageUrl} alt="Campaign" className="rounded-xl"/>
                 </figure>
                 <div className="card-body">
                     <h2 className="card-title">{campaign.account.name}</h2>

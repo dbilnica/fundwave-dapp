@@ -1,7 +1,7 @@
 // TODO: SignMessage
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { FC, useState, useRef, ChangeEvent } from 'react';
-import { Program, ProgramAccount, AnchorProvider, web3, utils, BN } from "@project-serum/anchor"
+import { Program, AnchorProvider, web3, utils, BN } from "@project-serum/anchor"
 import { PublicKey } from '@solana/web3.js';
 import idl from "./crowdfunding_dapp.json"
 import { toast, ToastContainer } from 'react-toastify';

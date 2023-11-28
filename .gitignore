@@ -38,5 +38,3 @@ yarn-error.log*
 
 # logs
 *.log
-
-API_Key.txt
