@@ -149,6 +149,22 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
             </div>
         );
     };
+
+    const ProgressBar: FC<{ goal: number, pledged: number }> = ({ goal, pledged }) => {
+        const progressPercent = Math.min(100, (pledged / goal) * 100);
+    
+        return (
+            <div style={{ width: '100%', backgroundColor: '#e0e0e0', borderRadius: '8px' }}>
+                <div style={{
+                    height: '10px',
+                    width: `${progressPercent}%`,
+                    background: 'linear-gradient(to bottom right, #667eea, #764ba2)',
+                    borderRadius: '8px'
+                }}>
+                </div>
+            </div>
+        );
+    };
     
     useEffect(() => {
         getAllCampaigns();
@@ -169,6 +185,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                 </figure>
                 <div className="card-body">
                     <h2 className="card-title">{campaign.account.name}</h2>
+                    <ProgressBar goal={Number(campaign.account.goal)} pledged={Number(campaign.account.pledged)} />
                     <p>Goal: {campaign.account.goal.toString()} SOL</p>
                     <p>Pledged: {campaign.account.pledged.toString()} SOL</p>
                     <Countdown endTime={endTime} />
