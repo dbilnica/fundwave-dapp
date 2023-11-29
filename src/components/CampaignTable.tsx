@@ -134,15 +134,15 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
 
     const Countdown: FC<{ endTime: number }> = ({ endTime }) => {
         const [timeLeft, setTimeLeft] = useState(() => calculateTimeRemaining(endTime));
-    
+
         useEffect(() => {
             const timer = setInterval(() => {
                 setTimeLeft(calculateTimeRemaining(endTime));
             }, 1000);
-    
+
             return () => clearInterval(timer);
         }, [endTime]);
-    
+
         return (
             <div>
                 {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
@@ -152,7 +152,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
 
     const ProgressBar: FC<{ goal: number, pledged: number }> = ({ goal, pledged }) => {
         const progressPercent = Math.min(100, (pledged / goal) * 100);
-    
+
         return (
             <div style={{ width: '100%', backgroundColor: '#e0e0e0', borderRadius: '8px' }}>
                 <div style={{
@@ -165,7 +165,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
             </div>
         );
     };
-    
+
     useEffect(() => {
         getAllCampaigns();
     }, [walletKey, program]);
@@ -177,6 +177,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
     const CampaignCard: FC<{ campaign: ProgramAccount }> = ({ campaign }) => {
         const endTime = new Date(campaign.account.endCampaign.toNumber() * 1000).getTime();
         const ipfsImageUrl = `https://ipfs.io/ipfs/${campaign.account.imageIpfsHash}`;
+        const progressPercent = Math.min(100, (Number(campaign.account.pledged) / Number(campaign.account.goal)) * 100);
 
         return (
             <div className="card w-96 bg-base-100 shadow-xl m-2">
@@ -184,14 +185,13 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                     <img src={ipfsImageUrl} alt="Campaign" className="rounded-xl" />
                 </figure>
                 <div className="card-body">
-                    <h2 className="card-title">{campaign.account.name}</h2>
+                    <h2 className="card-title text-2xl font-bold" style={{ textTransform: 'uppercase' }}>{campaign.account.name}</h2>
                     <ProgressBar goal={Number(campaign.account.goal)} pledged={Number(campaign.account.pledged)} />
-                    <p>Goal: {campaign.account.goal.toString()} SOL</p>
-                    <p>Pledged: {campaign.account.pledged.toString()} SOL</p>
+                    <p className="text-lg">Goal: {campaign.account.goal.toString()} SOL</p>
+                    <p className="text-lg">Pledged: {campaign.account.pledged.toString()} SOL</p>
                     <Countdown endTime={endTime} />
-                    <div className="card-actions justify-end">
-                        <button className="btn btn-primary" onClick={() => supportCampaign(campaign.publicKey, 14500)}>Pledge</button>
-                        <button className="btn btn-secondary" onClick={() => cancelSupport(campaign.publicKey)}>Cancel Pledge</button>
+                    <div className="card-actions justify-center">
+                        <button className="btn btn-secondary text-2xl font-bold" style={{ width: '100%' }} onClick={() => supportCampaign(campaign.publicKey, 14500)}>Pledge</button>
                     </div>
                 </div>
             </div>
