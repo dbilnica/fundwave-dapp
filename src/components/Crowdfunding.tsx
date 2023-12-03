@@ -3,7 +3,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { FC, useState, useRef, ChangeEvent } from 'react';
 import { Program, AnchorProvider, web3, utils, BN } from "@project-serum/anchor"
 import { PublicKey } from '@solana/web3.js';
-import idl from "./crowdfunding_dapp.json"
+import idl from "@/components/idl/crowdfunding_dapp.json";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 

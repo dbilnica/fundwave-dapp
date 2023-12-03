@@ -2,10 +2,9 @@ import { useEffect, useState, FC } from 'react';
 import { BN, Program, ProgramAccount, AnchorProvider, web3, utils, getProvider } from '@project-serum/anchor';
 import { PublicKey } from '@solana/web3.js';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import idl from "./crowdfunding_dapp.json";
+import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { publicKey } from '@project-serum/anchor/dist/cjs/utils';
-
+import Link from 'next/link';
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string)
@@ -21,9 +20,10 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
 
     const ourWallet = useWallet();
     const { connection } = useConnection();
-    const [amount, setAmount] = useState("");
-    const [countdowns, setCountdowns] = useState({});
     const [isLoading, setIsLoading] = useState(true);
+    const [allImagesLoaded, setAllImagesLoaded] = useState(0);
+    const [allCampaignsReady, setAllCampaignsReady] = useState(false);
+
 
 
     const calculateTimeRemaining = (endTimestamp) => {
@@ -97,6 +97,12 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
         }
     }
 
+    const Loader = () => (
+        <div className="flex justify-center items-center">
+            <span className="loading loading-spinner loading-lg"></span>
+        </div>
+    );
+
     const cancelSupport = async (publicKey) => {
         try {
             const anchProvider = await getProvider();
@@ -136,12 +142,19 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
         const [timeLeft, setTimeLeft] = useState(() => calculateTimeRemaining(endTime));
 
         useEffect(() => {
-            const timer = setInterval(() => {
-                setTimeLeft(calculateTimeRemaining(endTime));
-            }, 1000);
+            if (timeLeft.distance > 0) {
+                const timer = setInterval(() => {
+                    const newTimeLeft = calculateTimeRemaining(endTime);
+                    setTimeLeft(newTimeLeft);
+                }, 1000);
+    
+                return () => clearInterval(timer);
+            }
+        }, [endTime, timeLeft.distance]);
 
-            return () => clearInterval(timer);
-        }, [endTime]);
+        if (timeLeft.distance <= 0) {
+            return <div>Campaign has ended</div>;
+        }
 
         return (
             <div>
@@ -171,18 +184,55 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
     }, [walletKey, program]);
 
     if (isLoading) {
-        return <div>Loading campaigns...</div>;
+        return <Loader />;
     }
 
     const CampaignCard: FC<{ campaign: ProgramAccount }> = ({ campaign }) => {
+        const campaignId = campaign.publicKey.toBase58();
         const endTime = new Date(campaign.account.endCampaign.toNumber() * 1000).getTime();
-        const ipfsImageUrl = `https://ipfs.io/ipfs/${campaign.account.imageIpfsHash}`;
+        const campaignHasEnded = new Date().getTime() > endTime;
+        const [imageLoading, setImageLoading] = useState(true);
         const progressPercent = Math.min(100, (Number(campaign.account.pledged) / Number(campaign.account.goal)) * 100);
+        const ipfsProviders = [
+            'https://ipfs.io/ipfs/',
+            'https://gateway.pinata.cloud/ipfs/'
+        ];
+        const [currentProviderIndex, setCurrentProviderIndex] = useState(0);
+
+        const computeImageUrl = () => {
+            return ipfsProviders[currentProviderIndex] + campaign.account.imageIpfsHash;
+        };
+        const [imageSrc, setImageSrc] = useState(computeImageUrl);
+
+        const handleImageError = () => {
+            if (currentProviderIndex < ipfsProviders.length - 1) {
+                setCurrentProviderIndex(currentProviderIndex + 1);
+            }
+        };
+
+        const handleImageLoad = () => {
+            setTimeout(() => {
+                setImageLoading(false);
+            }, 500);
+        };
+
+
+        useEffect(() => {
+            setImageLoading(true);
+            setImageSrc(computeImageUrl());
+        }, [currentProviderIndex, campaign.account.imageIpfsHash]);
 
         return (
             <div className="card w-96 bg-base-100 shadow-xl m-2">
                 <figure className="px-10 pt-10">
-                    <img src={ipfsImageUrl} alt="Campaign" className="rounded-xl" />
+                    {imageLoading && <Loader />}
+                    <img
+                        src={imageSrc}
+                        alt="Campaign"
+                        className={`rounded-xl ${imageLoading ? 'hidden' : ''}`}
+                        onError={handleImageError}
+                        onLoad={handleImageLoad}
+                    />
                 </figure>
                 <div className="card-body">
                     <h2 className="card-title text-2xl font-bold" style={{ textTransform: 'uppercase' }}>{campaign.account.name}</h2>
@@ -191,8 +241,13 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                     <p className="text-lg">Pledged: {campaign.account.pledged.toString()} SOL</p>
                     <Countdown endTime={endTime} />
                     <div className="card-actions justify-center">
-                        <button className="btn btn-secondary text-2xl font-bold" style={{ width: '100%' }} onClick={() => supportCampaign(campaign.publicKey, 14500)}>Pledge</button>
+                        <Link href={`/campaign/${campaignId}`} passHref>
+                            <button className="btn btn-secondary text-2xl font-bold" style={{ width: '100%' }}>
+                                Pledge
+                            </button>
+                        </Link>
                     </div>
+
                 </div>
             </div>
         );
@@ -234,11 +289,9 @@ export const ShowCampaigns: FC = () => {
 
     return (
         <div className='campaigns-view p-5'>
-            {!ourWallet.connected && <WalletMultiButton />}
-            {ourWallet.connected && program && <CampaignsTable walletKey={ourWallet.publicKey!} program={program} />}
+            <CampaignsTable walletKey={ourWallet.publicKey!} program={program} />
         </div>
     );
 };
 
 export default ShowCampaigns;
-
