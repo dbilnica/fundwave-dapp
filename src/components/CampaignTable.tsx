@@ -17,14 +17,9 @@ interface CampaignsTableProps {
 
 export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     const [campaigns, setCampaigns] = useState<ProgramAccount[]>([]);
-
     const ourWallet = useWallet();
     const { connection } = useConnection();
     const [isLoading, setIsLoading] = useState(true);
-    const [allImagesLoaded, setAllImagesLoaded] = useState(0);
-    const [allCampaignsReady, setAllCampaignsReady] = useState(false);
-
-
 
     const calculateTimeRemaining = (endTimestamp) => {
         const now = new Date().getTime();
