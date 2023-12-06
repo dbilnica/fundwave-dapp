@@ -63,12 +63,16 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                 return a.account.endCampaign.toNumber() - b.account.endCampaign.toNumber();
             });
 
+            endedCampaigns.sort((a, b) => {
+                return b.account.endCampaign.toNumber() - a.account.endCampaign.toNumber();
+            })
+
             const sortedCampaigns = ongoingCampaigns.concat(endedCampaigns);
 
             setCampaigns(sortedCampaigns);
             setIsLoading(false);
         } catch (error) {
-            setIsLoading(false);
+            setIsLoading(true);
             console.error("Error while getting the campaigns")
         }
     };
@@ -133,6 +137,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
         }
     }
 
+        /*
     const Countdown: FC<{ endTime: number }> = ({ endTime }) => {
         const [timeLeft, setTimeLeft] = useState(() => calculateTimeRemaining(endTime));
 
@@ -142,7 +147,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                     const newTimeLeft = calculateTimeRemaining(endTime);
                     setTimeLeft(newTimeLeft);
                 }, 1000);
-    
+
                 return () => clearInterval(timer);
             }
         }, [endTime, timeLeft.distance]);
@@ -156,7 +161,33 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                 {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
             </div>
         );
+    };*/
+
+    const Countdown: FC<{ endTime: number }> = ({ endTime }) => {
+        const [timeLeft, setTimeLeft] = useState(() => calculateTimeRemaining(endTime));
+    
+        useEffect(() => {
+            const timer = setInterval(() => {
+                const newTimeLeft = calculateTimeRemaining(endTime);
+                setTimeLeft(newTimeLeft);
+            }, 1000);
+    
+            return () => clearInterval(timer);
+        }, [endTime]);
+    
+        const formatRemainingTime = () => {
+            if (timeLeft.distance <= 0) {
+                return "ended";
+            } else if (timeLeft.days > 0) {
+                return `${timeLeft.days} days`;
+            } else {
+                return `${timeLeft.hours}h ${timeLeft.minutes}m`;
+            }
+        };
+    
+        return <div>{formatRemainingTime()}</div>;
     };
+    
 
     const ProgressBar: FC<{ goal: number, pledged: number }> = ({ goal, pledged }) => {
         const progressPercent = Math.min(100, (pledged / goal) * 100);
@@ -185,9 +216,8 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
     const CampaignCard: FC<{ campaign: ProgramAccount }> = ({ campaign }) => {
         const campaignId = campaign.publicKey.toBase58();
         const endTime = new Date(campaign.account.endCampaign.toNumber() * 1000).getTime();
-        const campaignHasEnded = new Date().getTime() > endTime;
         const [imageLoading, setImageLoading] = useState(true);
-        const progressPercent = Math.min(100, (Number(campaign.account.pledged) / Number(campaign.account.goal)) * 100);
+        const progressPercent = ((Number(campaign.account.pledged) / Number(campaign.account.goal)) * 100).toFixed(1);
         const ipfsProviders = [
             'https://ipfs.io/ipfs/',
             'https://gateway.pinata.cloud/ipfs/'
@@ -229,20 +259,35 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program, walletKey }) 
                         onLoad={handleImageLoad}
                     />
                 </figure>
-                <div className="card-body">
-                    <h2 className="card-title text-2xl font-bold" style={{ textTransform: 'uppercase' }}>{campaign.account.name}</h2>
-                    <ProgressBar goal={Number(campaign.account.goal)} pledged={Number(campaign.account.pledged)} />
-                    <p className="text-lg">Goal: {campaign.account.goal.toString()} SOL</p>
-                    <p className="text-lg">Pledged: {campaign.account.pledged.toString()} SOL</p>
-                    <Countdown endTime={endTime} />
-                    <div className="card-actions justify-center">
-                        <Link href={`/campaign/${campaignId}`} passHref>
-                            <button className="btn btn-secondary text-2xl font-bold" style={{ width: '100%' }}>
-                                Pledge
-                            </button>
-                        </Link>
+                <div className="card-body flex flex-col">
+                    <h2 className="line-clamp-2 card-title text-left text-2xl font-bold mb-1" style={{ textTransform: 'uppercase' }}>{campaign.account.name}</h2>
+                    <p className="line-clamp-3 text-left text-lg mb-4 flex-grow">{campaign.account.description}</p>
+                    <div className='mt-auto'>
+                        <div className='mb-4'>
+                            <ProgressBar goal={Number(campaign.account.goal)} pledged={Number(campaign.account.pledged)} />
+                        </div>
+                        <div className="flex justify-between items-center text-cente">
+                            <div className="flex-1">
+                                <p className="text-lg font-bold">{progressPercent}%</p>
+                                <span className="text-sm">achieved</span>
+                            </div>
+                            <div className="flex-1 border-l border-r border-gray-300">
+                                <p className="text-lg font-bold">{campaign.account.pledged.toString()} SOL</p>
+                                <span className="text-sm">collected</span>
+                            </div>
+                            <div className="flex-1">
+                                <Countdown endTime={endTime}/>
+                                <span className="text-sm">remaining</span>
+                            </div>
+                        </div>
+                        <div className="card-actions justify-center">
+                            <Link href={`/campaign/${campaignId}`} passHref>
+                                <button className="btn btn-wide text-2xl font-bold mt-5" style={{ width: '100%' }}>
+                                    Support campaign
+                                </button>
+                            </Link>
+                        </div>
                     </div>
-
                 </div>
             </div>
         );
