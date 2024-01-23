@@ -17,7 +17,7 @@ const App: FC<AppProps> = ({ Component, pageProps }) => {
           </Head>
 
           <ContextProvider>
-            <div className="flex flex-col h-screen no-overflow">
+            <div className="flex flex-col h-screen no-overflow pt-20">
               <Notifications />
               <AppBar/>
               <ContentContainer>

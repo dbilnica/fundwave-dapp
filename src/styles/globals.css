@@ -30,5 +30,5 @@ a {
 }
 
 .no-overflow {
-  overflow: hidden;
+  overflow-x: hidden;
 }
