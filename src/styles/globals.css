@@ -29,3 +29,6 @@ a {
   background-color: #707070;
 }
 
+.no-overflow {
+  overflow: hidden;
+}
