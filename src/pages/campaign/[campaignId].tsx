@@ -143,7 +143,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({ program, walletKey, ca
                 <div className="text-xs uppercase font-bold text-grey-dark tracking-wide">Support This Campaign</div>
                 <div className="flex mt-2">
                     <button
-                        onClick={() => supportCampaign(100)} // Replace 100 with the amount you wish to support
+                        onClick={() => supportCampaign(100)}
                         className="bg-blue-500 hover:bg-blue-dark text-white font-bold py-2 px-4 rounded"
                     >
                         Support with 100 SOL
@@ -153,6 +153,12 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({ program, walletKey, ca
                         className="bg-red-500 hover:bg-red-dark text-white font-bold py-2 px-4 rounded ml-2"
                     >
                         Cancel Support
+                    </button>
+                    <button
+                        onClick={() => withdrawCampaign(campaignPublicKey.campaignKey)}
+                        className="bg-purple-500 hover:bg-red-dark text-white font-bold py-2 px-4 rounded ml-2"
+                    >
+                        Withdraw Campaign
                     </button>
                 </div>
             </div>

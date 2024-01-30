@@ -32,3 +32,8 @@ a {
 .no-overflow {
   overflow-x: hidden;
 }
+
+.dropdown-content {
+  z-index: 1000;
+  overflow: visible;
+}
