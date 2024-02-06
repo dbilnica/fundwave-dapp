@@ -1,6 +1,6 @@
 
 import { FC } from "react";
-import { Crowdfunding } from '../../components/Crowdfunding';
+import { Crowdfunding } from '../../components/create-feature';
 
 export const CreateCampaignView: FC = ({ }) => {
 

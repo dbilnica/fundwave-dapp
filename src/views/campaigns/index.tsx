@@ -1,6 +1,6 @@
 
 import { FC } from "react";
-import { ShowCampaigns } from '../../components/CampaignTable';
+import { ShowCampaigns } from '../../components/dashboard-feature';
 
 export const CampaignsView: FC = ({ }) => {
 

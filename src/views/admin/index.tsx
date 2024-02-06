@@ -1,6 +1,6 @@
 
 import { FC } from "react";
-import { Admin } from '../../components/Admin';
+import { Admin } from '../../components/admin-feature';
 
 export const AdminView: FC = ({ }) => {
 

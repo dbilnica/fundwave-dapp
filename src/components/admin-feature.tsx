@@ -1,7 +1,6 @@
 import { useEffect, useState, FC } from 'react';
-import { BN, Program, ProgramAccount, AnchorProvider, web3, utils, getProvider } from '@project-serum/anchor';
-import { Account, PublicKey } from '@solana/web3.js';
-import { Table, Button } from 'react-bootstrap';
+import { Program, ProgramAccount, AnchorProvider, web3, utils, getProvider } from '@project-serum/anchor';
+import { PublicKey } from '@solana/web3.js';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
