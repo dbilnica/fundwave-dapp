@@ -11,7 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@heroicons/react": "^2.0.14",
+    "@heroicons/react": "^1.0.6",
     "@nextui-org/system": "^2.0.15",
     "@nextui-org/theme": "^2.1.17",
     "@noble/ed25519": "^1.7.1",
