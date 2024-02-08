@@ -13,9 +13,8 @@ import {
   getProvider,
 } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string);
@@ -38,6 +37,10 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
   const { connection } = useConnection();
   const [campaignPublicKey, setCampaignPublicKey] = useState(null);
   const [isSupporting, setIsSupporting] = useState(false);
+  const ipfsProviders = [
+    'https://ipfs.io/ipfs/',
+    'https://gateway.pinata.cloud/ipfs/'
+];
 
   const getCampaign = async () => {
     if (!campaignId) {
@@ -88,7 +91,9 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
           systemProgram: web3.SystemProgram.programId,
         })
         .rpc();
-      toast.success(`Campaign "${campaign.name}" has been successfully reviewed!`);
+      toast.success(
+        `Campaign "${campaign.name}" has been successfully reviewed!`
+      );
       console.log(
         "Campaign has been successfully supported " + campaignPublicKey
       );
@@ -97,6 +102,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
       toast.error("Error while supporting!", error);
       console.log("Error while supporting", error);
     }
+    setIsSupporting(false);
   };
 
   const cancelSupport = async (publicKey) => {
@@ -227,55 +233,54 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
 
   return (
     <>
-    <ToastContainer position='top-center' />
-    <div className="shadow-md rounded-lg overflow-hidden my-4">
-          <div className="p-4">
-              <h1 className="font-bold text-xl mb-2">{campaign.name}</h1>
-              <p className="text-grey-darker text-base mb-4">
-                  {campaign.description}
-              </p>
-              <p className="text-grey-darker text-base">
-                  Goal: {campaign.goal?.toString()} SOL
-              </p>
-              <p className="text-grey-darker text-base">
-                  Pledged: {campaign.pledged?.toString()} SOL
-              </p>
+      <Head>
+        <title>{campaign.name} | FundWave Campaign</title>
+        <meta
+          name="description"
+          content={`${campaign.name}: ${campaign.description}`}
+        />
+      </Head>
+      <ToastContainer position="top-center" />
+      <div className="flex justify-center mt-10 mb-10">
+        <div className="card w-full max-w-4xl bg-base-100 shadow-xl">
+          <figure className="px-10 pt-10">
+            
+          </figure>
+          <div className="card-body">
+            <h2 className="card-title text-4xl font-bold">{campaign.name}</h2>
+            <p className="mb-4">{campaign.description}</p>
 
-              <ProgressBar
-                  goal={Number(campaign.goal)}
-                  pledged={Number(campaign.pledged)} />
-          </div>
-          <div className="p-4 border-t border-grey-light">
-              <Countdown endTime={endTime} />
-              <div className="text-sm">remaining</div>
-          </div>
-          <div className="px-4 pt-3 pb-4 border-t border-grey-light">
-              <div className="text-xs uppercase font-bold text-grey-dark tracking-wide">
-                  Support This Campaign
+            <ProgressBar goal={Number(campaign.goal)} pledged={Number(campaign.pledged)} />
+            <div className="flex justify-between items-center my-4">
+              <div>
+                <p className="text-lg font-bold">{progressPercent}% achieved</p>
+                <p className="text-lg">{campaign.pledged?.toString()} SOL collected</p>
               </div>
-              <div className="flex mt-2">
-                  <button
-                      onClick={() => supportCampaign(100)}
-                      className="bg-blue-500 hover:bg-blue-dark text-white font-bold py-2 px-4 rounded"
-                  >
-                      Support with 100 SOL
-                  </button>
-                  <button
-                      onClick={() => cancelSupport(campaignPublicKey)}
-                      className="bg-red-500 hover:bg-red-dark text-white font-bold py-2 px-4 rounded ml-2"
-                  >
-                      Cancel Support
-                  </button>
-                  <button
-                      onClick={() => withdrawCampaign(campaignPublicKey)}
-                      className="bg-purple-500 hover:bg-red-dark text-white font-bold py-2 px-4 rounded ml-2"
-                  >
-                      Withdraw Campaign
-                  </button>
+              <div>
+                <Countdown endTime={endTime} />
+               
               </div>
+            </div>
+
+            <div className="card-actions justify-end">
+              <button onClick={() => supportCampaign(100)}
+                className="btn btn-primary"
+                disabled={isSupporting}>
+                {isSupporting ? 'Supporting...' : 'Support with 100 SOL'}
+              </button>
+              <button onClick={() => cancelSupport(campaignPublicKey)}
+                className="btn btn-error">
+                Cancel Support
+              </button>
+              <button onClick={() => withdrawCampaign(campaignPublicKey)}
+                className="btn btn-warning">
+                Withdraw Campaign
+              </button>
+            </div>
           </div>
+        </div>
       </div>
-      </>
+    </>
   );
 };
 
