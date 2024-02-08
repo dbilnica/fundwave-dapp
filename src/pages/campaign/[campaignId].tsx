@@ -14,6 +14,7 @@ import {
 } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import { toast, ToastContainer } from "react-toastify";
+import Image from "next/image"
 import "react-toastify/dist/ReactToastify.css";
 
 const idl_string = JSON.stringify(idl);
@@ -37,10 +38,14 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
   const { connection } = useConnection();
   const [campaignPublicKey, setCampaignPublicKey] = useState(null);
   const [isSupporting, setIsSupporting] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [showImage, setShowImage] = useState(false);
   const ipfsProviders = [
-    'https://ipfs.io/ipfs/',
-    'https://gateway.pinata.cloud/ipfs/'
-];
+    "https://ipfs.io/ipfs/",
+    "https://gateway.pinata.cloud/ipfs/",
+  ];
+
+  const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
 
   const getCampaign = async () => {
     if (!campaignId) {
@@ -54,10 +59,29 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
       setCampaign(campaignData);
       setCampaignPublicKey(campaignKey);
       setIsLoading(false);
+      
     } catch (error) {
       setIsLoading(false);
       console.error("Error while fetching the campaign details:", error);
     }
+  };
+
+  const computeImageUrl = () => {
+    const baseUri = ipfsProviders[currentGatewayIndex % ipfsProviders.length];
+    console.log()
+    return `${baseUri}${campaign.imageIpfsHash}`;
+  };
+
+
+
+  const handleImageError = () => {
+    console.error(
+      `Error loading image from gateway ${currentGatewayIndex}. Trying next gateway.`
+    );
+    setCurrentGatewayIndex(
+      (prevIndex) => (prevIndex + 1) % ipfsProviders.length
+    );
+    setImageLoading(false);
   };
 
   const Loader = () => (
@@ -221,6 +245,16 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
     }
   }, [campaignId, walletKey, program]);
 
+  useEffect(() => {
+    if (campaign) { // Check if campaign is not null
+      const timeoutId = setTimeout(() => {
+        setShowImage(true);
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [campaign?.imageIpfsHash]); // Use optional chaining to safely access imageIpfsHash
+  
+
   if (!campaign) {
     return <Loader />;
   }
@@ -244,36 +278,58 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
       <div className="flex justify-center mt-10 mb-10">
         <div className="card w-full max-w-4xl bg-base-100 shadow-xl">
           <figure className="px-10 pt-10">
-            
+          <Image
+            src={computeImageUrl()}
+            alt="Campaign Image"
+            width={500}
+            height={300}
+            onLoad={() => {
+              setImageLoading(false);
+            }}
+            onError={() => {
+              console.error("Image failed to load");
+              handleImageError();
+            }}
+          />
           </figure>
           <div className="card-body">
             <h2 className="card-title text-4xl font-bold">{campaign.name}</h2>
             <p className="mb-4">{campaign.description}</p>
 
-            <ProgressBar goal={Number(campaign.goal)} pledged={Number(campaign.pledged)} />
+            <ProgressBar
+              goal={Number(campaign.goal)}
+              pledged={Number(campaign.pledged)}
+            />
             <div className="flex justify-between items-center my-4">
               <div>
                 <p className="text-lg font-bold">{progressPercent}% achieved</p>
-                <p className="text-lg">{campaign.pledged?.toString()} SOL collected</p>
+                <p className="text-lg">
+                  {campaign.pledged?.toString()} SOL collected
+                </p>
               </div>
               <div>
                 <Countdown endTime={endTime} />
-               
               </div>
             </div>
 
             <div className="card-actions justify-end">
-              <button onClick={() => supportCampaign(100)}
+              <button
+                onClick={() => supportCampaign(100)}
                 className="btn btn-primary"
-                disabled={isSupporting}>
-                {isSupporting ? 'Supporting...' : 'Support with 100 SOL'}
+                disabled={isSupporting}
+              >
+                {isSupporting ? "Supporting..." : "Support with 100 SOL"}
               </button>
-              <button onClick={() => cancelSupport(campaignPublicKey)}
-                className="btn btn-error">
+              <button
+                onClick={() => cancelSupport(campaignPublicKey)}
+                className="btn btn-error"
+              >
                 Cancel Support
               </button>
-              <button onClick={() => withdrawCampaign(campaignPublicKey)}
-                className="btn btn-warning">
+              <button
+                onClick={() => withdrawCampaign(campaignPublicKey)}
+                className="btn btn-warning"
+              >
                 Withdraw Campaign
               </button>
             </div>

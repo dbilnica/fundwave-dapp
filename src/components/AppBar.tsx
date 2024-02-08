@@ -29,6 +29,7 @@ export const AppBar: React.FC = () => {
                   width={220}
                   height={96}
                   style={{ cursor: "pointer" }}
+                  priority
                 />
               </Link>
             </div>

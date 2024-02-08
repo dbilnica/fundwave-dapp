@@ -164,32 +164,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
     }
   };
 
-  /*
-    const Countdown: FC<{ endTime: number }> = ({ endTime }) => {
-        const [timeLeft, setTimeLeft] = useState(() => calculateTimeRemaining(endTime));
-
-        useEffect(() => {
-            if (timeLeft.distance > 0) {
-                const timer = setInterval(() => {
-                    const newTimeLeft = calculateTimeRemaining(endTime);
-                    setTimeLeft(newTimeLeft);
-                }, 1000);
-
-                return () => clearInterval(timer);
-            }
-        }, [endTime, timeLeft.distance]);
-
-        if (timeLeft.distance <= 0) {
-            return <div>Campaign has ended</div>;
-        }
-
-        return (
-            <div>
-                {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
-            </div>
-        );
-    };*/
-
   const Countdown: FC<{ endTime: number }> = ({ endTime }) => {
     const [timeLeft, setTimeLeft] = useState(() =>
       calculateTimeRemaining(endTime)
