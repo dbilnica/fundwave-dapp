@@ -6,6 +6,15 @@ import React, { useState } from "react";
 import { useAutoConnect } from "../contexts/AutoConnectProvider";
 import NetworkSwitcher from "./NetworkSwitcher";
 import NavElement from "./nav-element";
+import idl from "@/components/idl/crowdfunding_dapp.json";
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { Program, ProgramAccount, AnchorProvider, web3, utils, getProvider } from '@project-serum/anchor';
+import { PublicKey } from '@solana/web3.js';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+
+const idl_string = JSON.stringify(idl);
+const idl_object = JSON.parse(idl_string)
+const programID = new PublicKey(idl.metadata.address);
 
 const WalletMultiButtonDynamic = dynamic(
   async () =>
@@ -16,6 +25,7 @@ const WalletMultiButtonDynamic = dynamic(
 export const AppBar: React.FC = () => {
   const { autoConnect, setAutoConnect } = useAutoConnect();
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const ourWallet = useWallet();
   return (
     <div className="fixed top-0 left-0 right-0 z-10">
       <div className="navbar flex h-20 flex-row md:mb-2 shadow-lg bg-black text-neutral-content border-b border-zinc-600 bg-opacity-66">

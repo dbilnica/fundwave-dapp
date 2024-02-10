@@ -43,7 +43,30 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
   const ipfsProviders = [
     "https://ipfs.io/ipfs/",
     "https://gateway.pinata.cloud/ipfs/",
+    "https://dweb.link/ipfs/",
   ];
+
+  // Inside your CampaignDetail component
+
+const renderDonorsList = () => {
+  if (!campaign?.pledgers || campaign.pledgers.length === 0) {
+    return <p>No donors yet.</p>;
+  }
+
+  return (
+    <div>
+      <h3>Donors List:</h3>
+      <ul>
+        {campaign.pledgers.map((pledger, index) => (
+          <li key={index}>
+            {`Donor Public Key: ${pledger.pledgerPubkey.toString()}, Amount: ${pledger.pledgedAmount}`}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
 
   const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
 
@@ -58,11 +81,11 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
       const campaignData = await program.account.campaign.fetch(campaignKey);
       setCampaign(campaignData);
       setCampaignPublicKey(campaignKey);
+      console.log(campaignData);
       setIsLoading(false);
       
     } catch (error) {
       setIsLoading(false);
-      console.error("Error while fetching the campaign details:", error);
     }
   };
 
@@ -264,6 +287,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
     100
   ).toFixed(1);
   const endTime = new Date(campaign.endCampaign.toNumber() * 1000).getTime();
+  
 
   return (
     <>
@@ -309,8 +333,10 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
               </div>
               <div>
                 <Countdown endTime={endTime} />
+                
               </div>
             </div>
+            {renderDonorsList()}
 
             <div className="card-actions justify-end">
               <button
@@ -374,9 +400,6 @@ export const ShowCampaign: FC = () => {
     initializeProgram();
   }, [ourWallet, connection]);
 
-  /*if (typeof campaignIdString !== 'string') {
-        return <Loader/>
-    }*/
 
   return (
     <div className="campaigns-view p-5">

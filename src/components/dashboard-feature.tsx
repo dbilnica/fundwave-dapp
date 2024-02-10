@@ -99,7 +99,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
       setIsLoading(false);
     } catch (error) {
       setIsLoading(true);
-      console.error("Error while getting the campaigns");
     }
   };
 
@@ -124,7 +123,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
   };
 
   const Loader = () => (
-      <span className="loading loading-spinner loading-lg"></span>
+    <span className="loading loading-spinner loading-lg"></span>
   );
 
   const cancelSupport = async (publicKey) => {
@@ -268,24 +267,26 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
 
     return (
       <div className="card w-96 bg-base-100 shadow-xl m-2">
-      <figure className="px-10 pt-10 relative">
-        {imageLoading && <Loader />}
-        {showImage && (
-          <Image
-            src={computeImageUrl()}
-            alt="Campaign Image"
-            width={500}
-            height={300}
-            onLoad={() => {
-              setImageLoading(false);
-            }}
-            onError={() => {
-              console.error("Image failed to load");
-              handleImageError();
-            }}
-          />
-        )}
-      </figure>
+        <figure className="px-10 pt-10 relative">
+          {imageLoading && <Loader />}
+          {showImage && (
+            <div className="overflow-hidden" style={{ borderRadius: "0.5rem" }}>
+              <Image
+                src={computeImageUrl()}
+                alt="Campaign Image"
+                width={500}
+                height={300}
+                onLoad={() => {
+                  setImageLoading(false);
+                }}
+                onError={() => {
+                  console.error("Image failed to load");
+                  handleImageError();
+                }}
+              />
+            </div>
+          )}
+        </figure>
         <div className="card-body flex flex-col">
           <h2
             className="line-clamp-2 card-title text-left text-2xl font-bold mb-1"
