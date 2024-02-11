@@ -2,18 +2,24 @@ import { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAutoConnect } from "../contexts/AutoConnectProvider";
 import NetworkSwitcher from "./NetworkSwitcher";
 import NavElement from "./nav-element";
 import idl from "@/components/idl/crowdfunding_dapp.json";
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { Program, ProgramAccount, AnchorProvider, web3, utils, getProvider } from '@project-serum/anchor';
-import { PublicKey } from '@solana/web3.js';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import {
+  Program,
+  ProgramAccount,
+  AnchorProvider,
+  web3,
+  utils,
+  getProvider,
+} from "@project-serum/anchor";
+import { PublicKey } from "@solana/web3.js";
 
 const idl_string = JSON.stringify(idl);
-const idl_object = JSON.parse(idl_string)
+const idl_object = JSON.parse(idl_string);
 const programID = new PublicKey(idl.metadata.address);
 
 const WalletMultiButtonDynamic = dynamic(
@@ -22,10 +28,79 @@ const WalletMultiButtonDynamic = dynamic(
   { ssr: false }
 );
 
-export const AppBar: React.FC = () => {
+interface AccountsProps {
+  program: Program;
+  walletKey: PublicKey;
+}
+
+export const AppBar: FC<AccountsProps> = ({ program, walletKey }) => {
   const { autoConnect, setAutoConnect } = useAutoConnect();
   const [isNavOpen, setIsNavOpen] = useState(false);
   const ourWallet = useWallet();
+  const { connection } = useConnection();
+  const [adminPublicKey, setAdminPublicKey] = useState(null);
+  const [userPublicKey, setUserPublicKey] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const getProvider = async (): Promise<AnchorProvider> => {
+    const provider = new AnchorProvider(
+      connection,
+      ourWallet,
+      AnchorProvider.defaultOptions()
+    );
+    return provider;
+  };
+
+  const getAdminPubkey = async () => {
+    try {
+      const anchProvider = await getProvider();
+      const program = new Program(idl_object, programID, anchProvider);
+      const adminAccounts = await program.account.admin.all();
+
+      if (adminAccounts.length > 0) {
+        const adminPubkey = new PublicKey(adminAccounts[0].account.adminPubkey);
+        console.log("Admin Public Key:", adminPubkey.toBase58());
+
+        setAdminPublicKey(adminPubkey);
+      } else {
+        console.log("No admin accounts found.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch admin public key:", error);
+    }
+  };
+
+  const getUserPubkey = async () => {
+    try {
+      const anchProvider = await getProvider();
+      if (anchProvider.wallet.publicKey) {
+        const signerPubkey = anchProvider.wallet.publicKey;
+        setUserPublicKey(signerPubkey);
+        console.log("User Public Key:", signerPubkey.toBase58());
+      } else {
+        console.log("Wallet is not connected.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch user public key:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (ourWallet.connected && ourWallet.publicKey) {
+      getAdminPubkey();
+      getUserPubkey();
+    }
+  }, [walletKey, program, ourWallet]);
+
+  useEffect(() => {
+    if (userPublicKey && adminPublicKey) {
+      setIsAdmin(userPublicKey.equals(adminPublicKey));
+    } else if (!adminPublicKey) {
+      // If there's no admin set, everyone can see the admin panel (based on your condition)
+      setIsAdmin(true);
+    }
+  }, [userPublicKey, adminPublicKey]);
+
   return (
     <div className="fixed top-0 left-0 right-0 z-10">
       <div className="navbar flex h-20 flex-row md:mb-2 shadow-lg bg-black text-neutral-content border-b border-zinc-600 bg-opacity-66">
@@ -47,8 +122,7 @@ export const AppBar: React.FC = () => {
           <WalletMultiButtonDynamic className="btn-ghost btn-sm relative flex md:hidden text-lg " />
         </div>
 
-        <div className="navbar-end">
-          <div className="hidden md:inline-flex align-items-center justify-items gap-6">
+        <div className="navbar-center flex-grow justify-center hidden md:flex gap-6">
             <NavElement
               label="Campaigns"
               href="/"
@@ -59,11 +133,15 @@ export const AppBar: React.FC = () => {
               href="/create"
               navigationStarts={() => setIsNavOpen(false)}
             />
-            <NavElement
-              label="Admin"
-              href="/admin"
-              navigationStarts={() => setIsNavOpen(false)}
-            />
+            {isAdmin && (
+              <NavElement
+                label="Admin"
+                href="/admin"
+                navigationStarts={() => setIsNavOpen(false)}
+              />
+            )}
+          </div>
+          <div className="navbar-end">
             <WalletMultiButtonDynamic className="btn-ghost btn-sm rounded-btn text-lg mr-6 " />
           </div>
           <label
@@ -152,6 +230,5 @@ export const AppBar: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
   );
 };
