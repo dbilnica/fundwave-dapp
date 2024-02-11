@@ -1,127 +1,56 @@
+# Fundwave DApp 🌊
 
-# Solana dApp Scaffold Next
+A decentralized crowdfunding platform leveraging the power of the Solana blockchain, crafted with Next.js for a powerful and seamless user experience.
 
-The Solana dApp Scaffold repos are meant to house good starting scaffolds for ecosystem developers to get up and running quickly with a front end client UI that integrates several common features found in dApps with some basic usage examples. Wallet Integration. State management. Components examples. Notifications. Setup recommendations.
+## About Fundwave
 
-Responsive                     |  Desktop
-:-------------------------:|:-------------------------:
-![](scaffold-mobile.png)  |  ![](scaffold-desktop.png)
-
-## Getting Started
-
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
-The responsive version for wallets and wallet adapter may not function or work as expected for mobile based on plugin and wallet compatibility. For more code examples and implementations please visit the [Solana Cookbook](https://solanacookbook.com/)
-
-## Installation
-
-```bash
-npm install
-# or
-yarn install
-```
-
-## Build and Run
-
-Next, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+Fundwave is a cutting-edge platform that enables users to launch and contribute to crowdfunding campaigns in a decentralized manner. By integrating with the Solana blockchain, Fundwave offers fast, secure, and low-cost transactions.
 
 ## Features
 
-Each Scaffold will contain at least the following features:
+- **Decentralized**: Operates on the Solana blockchain for trustless transactions.
+- **User-Friendly**: Built with Next.js and React, providing a smooth user interface.
+- **Web3 Integrated**: Supports Solana wallets for a seamless crypto experience.
+- **Smart Contracts**: Utilizes Anchor for Solana smart contract development.
 
-```
-Wallet Integration with Auto Connec / Refresh
+## Installation
 
-State Management
+Clone the repository:
 
-Components: One or more components demonstrating state management
+```bash
+git clone https://github.com/dbilnica/crowdfunding-dapp.git
+cd crowdfunding-dapp
 
-Web3 Js: Examples of one or more uses of web3 js including a transaction with a connection provider
+## Install the dependencies:
 
-Sample navigation and page changing to demonstate state
+```bash
+npm install
 
-Clean Simple Styling 
+## Start the development server:
 
-Notifications (optional): Example of using a notification system
+```bash
+npm run dev
 
-```
+## Usage
 
-A Solana Components Repo will be released in the near future to house a common components library.
-
-
-### Structure
-
-The scaffold project structure may vary based on the front end framework being utilized. The below is an example structure for the Next js Scaffold.
- 
-```
-├── public : publically hosted files
-├── src : primary code folders and files 
-│   ├── components : should house anything considered a resuable UI component
-│   ├── contexts` : any context considered reusable and useuful to many compoennts that can be passed down through a component tree
-│   ├── hooks` : any functions that let you 'hook' into react state or lifecycle features from function components
-│   ├── models` : any data structure that may be reused throughout the project
-│   ├── pages` : the pages that host meta data and the intended `View` for the page
-│   ├── stores` : stores used in state management
-│   ├── styles` : contain any global and reusable styles
-│   ├── utils` : any other functionality considered reusable code that can be referenced
-│   ├── views` : contains the actual views of the project that include the main content and components within
-style, package, configuration, and other project files
-
-```
+After starting the development server, you can create new crowdfunding campaigns, explore existing ones, and contribute to projects you believe in.
 
 ## Contributing
 
-Anyone is welcome to create an issue to build, discuss or request a new feature or update to the existing code base. Please keep in mind the following when submitting an issue. We consider merging high value features that may be utilized by the majority of scaffold users. If this is not a common feature or fix, consider adding it to the component library or cookbook. Please refer to the project's architecture and style when contributing. 
+We welcome contributions! Please read our [contribution guidelines](CONTRIBUTING.md) before submitting pull requests.
 
-If submitting a feature, please reference the project structure shown above and try to follow the overall architecture and style presented in the existing scaffold.
+## Report Issues
 
-### Committing
+If you encounter any issues, please report them at [Fundwave DApp Issues](https://github.com/dbilnica/crowdfunding-dapp/issues).
 
-To choose a task or make your own, do the following:
+## License
 
-1. [Add an issue](https://github.com/solana-dev-adv/solana-dapp-next/issues/new) for the task and assign it to yourself or comment on the issue
-2. Make a draft PR referencing the issue.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-The general flow for making a contribution:
+## Keywords
 
-1. Fork the repo on GitHub
-2. Clone the project to your own machine
-3. Commit changes to your own branch
-4. Push your work back up to your fork
-5. Submit a Pull request so that we can review your changes
+`solana` `blockchain` `crowdfunding` `dapp` `decentralized finance` `next.js` `react` `web3` `cryptocurrency` `fintech` `smart contracts` `anchor` `wallet adapter`
 
-**NOTE**: Be sure to merge the latest from "upstream" before making a 
-pull request!
+---
 
-You can find tasks on the [project board](https://github.com/solana-dev-adv/solana-dapp-next/projects/1) 
-or create an issue and assign it to yourself.
-
-
-## Learn More Next Js
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Made with 💜 by [David Bilnica](mailto:hello@davidbilnica.cz)
