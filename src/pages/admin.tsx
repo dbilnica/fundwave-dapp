@@ -6,7 +6,7 @@ const Admin: NextPage = (props) => {
   return (
     <div>
       <Head>
-        <title>Solana Scaffold</title>
+        <title>Admin | FundWave</title>
         <meta
           name="description"
           content="Admin"

@@ -31,9 +31,10 @@ const WalletMultiButtonDynamic = dynamic(
 interface AccountsProps {
   program: Program;
   walletKey: PublicKey;
+  adminPubkey: String;
 }
 
-export const AppBar: FC<AccountsProps> = ({ program, walletKey }) => {
+export const AppBar: FC = () => {
   const { autoConnect, setAutoConnect } = useAutoConnect();
   const [isNavOpen, setIsNavOpen] = useState(false);
   const ourWallet = useWallet();
@@ -58,7 +59,7 @@ export const AppBar: FC<AccountsProps> = ({ program, walletKey }) => {
       const adminAccounts = await program.account.admin.all();
 
       if (adminAccounts.length > 0) {
-        const adminPubkey = new PublicKey(adminAccounts[0].account.adminPubkey);
+        const adminPubkey = new PublicKey((adminAccounts[0].account as AccountsProps).adminPubkey);
         console.log("Admin Public Key:", adminPubkey.toBase58());
 
         setAdminPublicKey(adminPubkey);
@@ -90,7 +91,8 @@ export const AppBar: FC<AccountsProps> = ({ program, walletKey }) => {
       getAdminPubkey();
       getUserPubkey();
     }
-  }, [walletKey, program, ourWallet]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ourWallet]);
 
   useEffect(() => {
     if (userPublicKey && adminPublicKey) {

@@ -6,7 +6,7 @@ const Campaigns: NextPage = (props) => {
   return (
     <div>
       <Head>
-        <title>Solana Scaffold</title>
+        <title>FundWave</title>
         <meta
           name="description"
           content="Campaigns"

@@ -1,9 +1,32 @@
 {
-  "name": "solana-dapp-next",
-  "version": "0.2.0",
-  "author": "Solana Maintainers <maintainers@solana.foundation>",
+  "name": "fundwave-dapp",
+  "version": "1.4.7",
+  "author": "David Bilnica <hello@davidbilnica.cz>",
+  "description": "A decentralized crowdfunding platform built on the Solana blockchain, utilizing Next.js for a seamless user experience.",
   "license": "MIT",
-  "private": false,
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dbilnica/crowdfunding-dapp.git"
+  },
+  "keywords": [
+    "solana",
+    "blockchain",
+    "crowdfunding",
+    "dapp",
+    "decentralized finance",
+    "next.js",
+    "react",
+    "web3",
+    "cryptocurrency",
+    "fintech",
+    "smart contracts",
+    "anchor",
+    "wallet adapter"
+  ],
+  "bugs": {
+    "url": "https://github.com/dbilnica/crowdfunding-dapp/issues"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
