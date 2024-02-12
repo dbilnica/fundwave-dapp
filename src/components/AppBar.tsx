@@ -150,6 +150,11 @@ export const AppBar: FC = () => {
             href="/create"
             navigationStarts={() => setIsNavOpen(false)}
           />
+          <NavElement
+            label="Portfolio"
+            href="/portfolio"
+            navigationStarts={() => setIsNavOpen(false)}
+          />
           {isAdmin && (
             <NavElement
               label="Admin"
