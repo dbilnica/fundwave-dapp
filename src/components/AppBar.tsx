@@ -112,7 +112,7 @@ export const AppBar: FC = () => {
               <Link href="/">
                 <Image
                   src="/fundwaveLogo.png"
-                  alt="solana icon"
+                  alt="fundwave logo"
                   width={220}
                   height={96}
                   style={{ cursor: "pointer" }}
