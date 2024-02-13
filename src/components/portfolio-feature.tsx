@@ -30,7 +30,6 @@ export const PortfolioDetail: FC<CampaignsTableProps> = ({
   program,
   walletKey
 }) => {
-  const [campaigns, setCampaigns] = useState<ProgramAccount[]>([]);
   const [campaign, setCampaign] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const ourWallet = useWallet();

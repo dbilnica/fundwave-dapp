@@ -44,6 +44,9 @@ export const AppBar: FC = () => {
   const [userPublicKey, setUserPublicKey] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showDownloadButton, setShowDownloadButton] = useState(false);
+  const [hasPortfolio, setHasPortfolio] = useState(false);
+  const [program, setProgram] = useState<Program | null>(null);
+
 
   const getProvider = async (): Promise<AnchorProvider> => {
     const provider = new AnchorProvider(
@@ -64,8 +67,6 @@ export const AppBar: FC = () => {
         const adminPubkey = new PublicKey(
           (adminAccounts[0].account as AccountsProps).adminPubkey
         );
-        console.log("Admin Public Key:", adminPubkey.toBase58());
-
         setAdminPublicKey(adminPubkey);
       } else {
         console.log("No admin accounts found.");
@@ -81,7 +82,6 @@ export const AppBar: FC = () => {
       if (anchProvider.wallet.publicKey) {
         const signerPubkey = anchProvider.wallet.publicKey;
         setUserPublicKey(signerPubkey);
-        console.log("User Public Key:", signerPubkey.toBase58());
       } else {
         console.log("Wallet is not connected.");
       }
@@ -90,18 +90,58 @@ export const AppBar: FC = () => {
     }
   };
 
+  const getAllCampaigns = async () => {
+    try {
+      const fetchedCampaigns = await program.account.campaign.all();
+      const userPublicKeyString = userPublicKey?.toString();
+      
+      const userOwnedCampaign = fetchedCampaigns.find(({account}) => 
+        account.owner.toBase58() === userPublicKeyString
+      );
+      
+      if (userOwnedCampaign) {
+        setHasPortfolio(true);
+      } else {
+        setHasPortfolio(false);
+      }
+    } catch (error) {
+      console.error("Failed to fetch campaigns:", error);
+    }
+  };
+  
+
   useEffect(() => {
-    // Delay showing the download button for 2 seconds
     const timer = setTimeout(() => {
       setShowDownloadButton(true);
     }, 2000);
 
-    return () => clearTimeout(timer); // Cleanup the timer when the component unmounts or rerenders
-  }, []); // The empty array means this effect runs once on mount
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+  const initProgram = async () => {
+    try {
+      if (!ourWallet.connected || !ourWallet.publicKey) return;
+      const anchProvider = await getProvider();
+      const programInstance = new Program(idl_object, programID, anchProvider);
+      setProgram(programInstance);
+    } catch (error) {
+      console.error("Failed to initialize the program:", error);
+    }
+  };
+
+  initProgram();
+}, [ourWallet.connected, ourWallet.publicKey, connection]);
+
+useEffect(() => {
+  if (program && userPublicKey) {
+    getAllCampaigns();
+  }
+}, [program, userPublicKey]);
 
   useEffect(() => {
     if (walletConnected) {
-      setShowDownloadButton(false); // Hide the button immediately when a wallet is detected
+      setShowDownloadButton(false);
     }
   }, [walletConnected]); //
 
@@ -123,15 +163,13 @@ export const AppBar: FC = () => {
     if (ourWallet.connected) {
       setWalletConnected(true);
     } else {
-      // If not connected, we explicitly set it to false.
       setWalletConnected(false);
     }
-    // We only want to run this effect after ourWallet state has been initialized.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ourWallet.connected]);
 
   if (walletConnected === null) {
-    return null; // Or some loading indicator if you prefer.
+    return null;
   }
 
   return (
@@ -166,11 +204,13 @@ export const AppBar: FC = () => {
             href="/create"
             navigationStarts={() => setIsNavOpen(false)}
           />
-          <NavElement
+          {hasPortfolio && ( 
+            <NavElement
             label="Portfolio"
             href="/portfolio"
             navigationStarts={() => setIsNavOpen(false)}
-          />
+            />
+          )}
           {isAdmin && (
             <NavElement
               label="Admin"
