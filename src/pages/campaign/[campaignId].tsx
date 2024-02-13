@@ -14,8 +14,9 @@ import {
 } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import { toast, ToastContainer } from "react-toastify";
-import Image from "next/image"
+import Image from "next/image";
 import "react-toastify/dist/ReactToastify.css";
+import DonorsList from "utils/DonorsList";
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string);
@@ -45,29 +46,6 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
     "https://gateway.pinata.cloud/ipfs/",
     "https://dweb.link/ipfs/",
   ];
-
-  // Inside your CampaignDetail component
-
-const renderDonorsList = () => {
-  if (!campaign?.pledgers || campaign.pledgers.length === 0) {
-    return <p>No donors yet.</p>;
-  }
-
-  return (
-    <div>
-      <h3>Donors List:</h3>
-      <ul>
-        {campaign.pledgers.map((pledger, index) => (
-          <li key={index}>
-            {`Donor Public Key: ${pledger.pledgerPubkey.toString()}, Amount: ${pledger.pledgedAmount}`}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
-
   const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
 
   const getCampaign = async () => {
@@ -83,7 +61,6 @@ const renderDonorsList = () => {
       setCampaignPublicKey(campaignKey);
       console.log(campaignData);
       setIsLoading(false);
-      
     } catch (error) {
       setIsLoading(false);
     }
@@ -91,11 +68,9 @@ const renderDonorsList = () => {
 
   const computeImageUrl = () => {
     const baseUri = ipfsProviders[currentGatewayIndex % ipfsProviders.length];
-    console.log()
+    console.log();
     return `${baseUri}${campaign.imageIpfsHash}`;
   };
-
-
 
   const handleImageError = () => {
     console.error(
@@ -269,14 +244,14 @@ const renderDonorsList = () => {
   }, [campaignId, walletKey, program]);
 
   useEffect(() => {
-    if (campaign) { // Check if campaign is not null
+    if (campaign) {
+      // Check if campaign is not null
       const timeoutId = setTimeout(() => {
         setShowImage(true);
       }, 500);
       return () => clearTimeout(timeoutId);
     }
   }, [campaign?.imageIpfsHash]); // Use optional chaining to safely access imageIpfsHash
-  
 
   if (!campaign) {
     return <Loader />;
@@ -287,7 +262,6 @@ const renderDonorsList = () => {
     100
   ).toFixed(1);
   const endTime = new Date(campaign.endCampaign.toNumber() * 1000).getTime();
-  
 
   return (
     <>
@@ -302,19 +276,19 @@ const renderDonorsList = () => {
       <div className="flex justify-center mt-10 mb-10">
         <div className="card w-full max-w-4xl bg-base-100 shadow-xl">
           <figure className="px-10 pt-10">
-          <Image
-            src={computeImageUrl()}
-            alt="Campaign Image"
-            width={500}
-            height={300}
-            onLoad={() => {
-              setImageLoading(false);
-            }}
-            onError={() => {
-              console.error("Image failed to load");
-              handleImageError();
-            }}
-          />
+            <Image
+              src={computeImageUrl()}
+              alt="Campaign Image"
+              width={500}
+              height={300}
+              onLoad={() => {
+                setImageLoading(false);
+              }}
+              onError={() => {
+                console.error("Image failed to load");
+                handleImageError();
+              }}
+            />
           </figure>
           <div className="card-body">
             <h2 className="card-title text-4xl font-bold">{campaign.name}</h2>
@@ -333,10 +307,9 @@ const renderDonorsList = () => {
               </div>
               <div>
                 <Countdown endTime={endTime} />
-                
               </div>
             </div>
-            {renderDonorsList()}
+            {campaign && <DonorsList pledgers={campaign.pledgers} />}
 
             <div className="card-actions justify-end">
               <button
@@ -399,7 +372,6 @@ export const ShowCampaign: FC = () => {
   useEffect(() => {
     initializeProgram();
   }, [ourWallet, connection]);
-
 
   return (
     <div className="campaigns-view p-5">
