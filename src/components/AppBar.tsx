@@ -43,6 +43,7 @@ export const AppBar: FC = () => {
   const [adminPublicKey, setAdminPublicKey] = useState(null);
   const [userPublicKey, setUserPublicKey] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showDownloadButton, setShowDownloadButton] = useState(false);
 
   const getProvider = async (): Promise<AnchorProvider> => {
     const provider = new AnchorProvider(
@@ -88,6 +89,21 @@ export const AppBar: FC = () => {
       console.error("Failed to fetch user public key:", error);
     }
   };
+
+  useEffect(() => {
+    // Delay showing the download button for 2 seconds
+    const timer = setTimeout(() => {
+      setShowDownloadButton(true);
+    }, 2000);
+
+    return () => clearTimeout(timer); // Cleanup the timer when the component unmounts or rerenders
+  }, []); // The empty array means this effect runs once on mount
+
+  useEffect(() => {
+    if (walletConnected) {
+      setShowDownloadButton(false); // Hide the button immediately when a wallet is detected
+    }
+  }, [walletConnected]); //
 
   useEffect(() => {
     if (ourWallet.connected && ourWallet.publicKey) {
@@ -163,19 +179,18 @@ export const AppBar: FC = () => {
             />
           )}
         </div>
-        <div className="navbar-end">
-          {walletConnected ? (
-            <WalletMultiButtonDynamic className="btn-ghost btn-sm rounded-btn text-lg mr-6 " />
-          ) : (
-            <a
-              href="https://phantom.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-primary text-lg mr-6"
-            >
-              Download Wallet
-            </a>
-          )}
+        <div className="navbar-end"> 
+        {!walletConnected && showDownloadButton && (
+        <a
+          href="https://phantom.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-primary text-lg mr-6"
+        >
+          Download Wallet
+        </a>
+      )}
+          <WalletMultiButtonDynamic className="btn-ghost btn-sm rounded-btn text-lg mr-6 " />
         </div>
         <label
           htmlFor="my-drawer"

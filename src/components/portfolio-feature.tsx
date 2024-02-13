@@ -24,14 +24,13 @@ const programID = new PublicKey(idl.metadata.address);
 interface CampaignsTableProps {
   program: Program;
   walletKey: PublicKey;
-  campaignId: string;
 }
 
 export const PortfolioDetail: FC<CampaignsTableProps> = ({
   program,
-  walletKey,
-  campaignId,
+  walletKey
 }) => {
+  const [campaigns, setCampaigns] = useState<ProgramAccount[]>([]);
   const [campaign, setCampaign] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const ourWallet = useWallet();
@@ -39,6 +38,8 @@ export const PortfolioDetail: FC<CampaignsTableProps> = ({
   const [campaignPublicKey, setCampaignPublicKey] = useState(null);
   const [isSupporting, setIsSupporting] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [userPublicKey, setUserPublicKey] = useState(null);
+  const [walletConnected, setWalletConnected] = useState<boolean | null>(null);
   const [showImage, setShowImage] = useState(false);
   const ipfsProviders = [
     "https://ipfs.io/ipfs/",
@@ -70,25 +71,33 @@ const renderDonorsList = () => {
 
   const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
 
-  const getCampaign = async () => {
-    if (!campaignId) {
-      console.error("Campaign ID is undefined");
-      setIsLoading(false);
-      return;
-    }
+  const getAllCampaigns = async () => {
+    setIsLoading(true); // Start loading
     try {
-      const campaignKey = new PublicKey(campaignId);
-      const campaignData = await program.account.campaign.fetch(campaignKey);
-      setCampaign(campaignData);
-      setCampaignPublicKey(campaignKey);
-      console.log(campaignData);
-      setIsLoading(false);
+      const fetchedCampaigns = await program.account.campaign.all();
       
+      // Log each campaign's owner
+      console.log("Campaign owners:");
+      fetchedCampaigns.forEach(({account}) => {
+        console.log(account.owner.toBase58());
+      });
+  
+      const userPublicKeyString = userPublicKey?.toString();
+      console.log("User Public Key:", userPublicKeyString); // Also log the user's public key for comparison
+      
+      const userOwnedCampaign = fetchedCampaigns.find(({account}) => 
+        account.owner.toBase58() === userPublicKeyString
+      );
+      
+      setCampaign(userOwnedCampaign ? userOwnedCampaign.account : null); // Set the single campaign
+      setIsLoading(false); // Loading done
     } catch (error) {
-      setIsLoading(false);
+      console.error("Failed to fetch campaigns:", error);
+      setIsLoading(false); // Loading done, handle the error appropriately
     }
   };
-
+  
+  
   const computeImageUrl = () => {
     const baseUri = ipfsProviders[currentGatewayIndex % ipfsProviders.length];
     console.log()
@@ -122,6 +131,49 @@ const renderDonorsList = () => {
     return provider;
   };
 
+  const getUserPubkey = async () => {
+    try {
+      const anchProvider = await getProvider();
+      if (anchProvider.wallet.publicKey) {
+        const signerPubkey = anchProvider.wallet.publicKey;
+        setUserPublicKey(signerPubkey);
+        console.log("User Public Key:", signerPubkey.toBase58());
+      } else {
+        console.log("Wallet is not connected.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch user public key:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (ourWallet.connected && ourWallet.publicKey) {
+      getUserPubkey();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ourWallet]);
+
+  useEffect(() => {
+    if (ourWallet.connected) {
+      setWalletConnected(true);
+    } else {
+      // If not connected, we explicitly set it to false.
+      setWalletConnected(false);
+    }
+    // We only want to run this effect after ourWallet state has been initialized.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ourWallet.connected]);
+
+  useEffect(() => {
+    if (userPublicKey && program) { 
+      getAllCampaigns();
+    }
+  }, [userPublicKey, program]);
+
+  if (walletConnected === null) {
+    return null; // Or some loading indicator if you prefer.
+  }
+
   const supportCampaign = async (amount) => {
     setIsSupporting(true);
     try {
@@ -144,7 +196,7 @@ const renderDonorsList = () => {
       console.log(
         "Campaign has been successfully supported " + campaignPublicKey
       );
-      setTimeout(getCampaign, 2000);
+      setTimeout(getAllCampaigns, 2000);
     } catch (error) {
       toast.error("Error while supporting!", error);
       console.log("Error while supporting", error);
@@ -165,7 +217,7 @@ const renderDonorsList = () => {
         })
         .rpc();
       console.log("Campaign support been successfully canceled");
-      setTimeout(getCampaign, 2000);
+      setTimeout(getAllCampaigns, 2000);
     } catch (error) {
       console.log("Error while cancelling support");
     }
@@ -262,25 +314,17 @@ const renderDonorsList = () => {
     );
   };
 
-  useEffect(() => {
-    if (campaignId && typeof campaignId === "string") {
-      getCampaign();
-    }
-  }, [campaignId, walletKey, program]);
 
-  useEffect(() => {
-    if (campaign) { // Check if campaign is not null
-      const timeoutId = setTimeout(() => {
-        setShowImage(true);
-      }, 500);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [campaign?.imageIpfsHash]); // Use optional chaining to safely access imageIpfsHash
+  
   
 
-  if (!campaign) {
+  if (isLoading) {
     return <Loader />;
   }
+  
+  if (!campaign) {
+    return <div>No campaign found or you do not own any campaigns.</div>;
+  }  
 
   const progressPercent = (
     (Number(campaign.pledged) / Number(campaign.goal)) *
@@ -289,6 +333,8 @@ const renderDonorsList = () => {
   const endTime = new Date(campaign.endCampaign.toNumber() * 1000).getTime();
   
 
+
+  
   return (
     <>
       <Head>
@@ -406,7 +452,6 @@ export const ShowPortfolio: FC = () => {
       <PortfolioDetail
         walletKey={ourWallet.publicKey!}
         program={program}
-        campaignId={campaignIdString}
       />
     </div>
   );
