@@ -17,6 +17,8 @@ import { toast, ToastContainer } from "react-toastify";
 import Image from "next/image";
 import "react-toastify/dist/ReactToastify.css";
 import DonorsList from "utils/DonorsList";
+import styles from './CampaignDetail.module.css';
+
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string);
@@ -83,7 +85,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
   };
 
   const Loader = () => (
-    <div className="flex justify-center items-center">
+    <div className={`${styles.loader} flex justify-center items-center`}>
       <span className="loading loading-spinner loading-lg"></span>
     </div>
   );
@@ -277,6 +279,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
         <div className="card w-full max-w-4xl bg-base-100 shadow-xl">
           <figure className="px-10 pt-10">
             <Image
+              className={styles.campaignImage}
               src={computeImageUrl()}
               alt="Campaign Image"
               width={500}
@@ -291,7 +294,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
             />
           </figure>
           <div className="card-body">
-            <h2 className="card-title text-4xl font-bold">{campaign.name}</h2>
+          <h2 className={`${styles.cardTitle} text-4xl font-bold`}>{campaign.name}</h2>
             <p className="mb-4">{campaign.description}</p>
 
             <ProgressBar
@@ -314,7 +317,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
             <div className="card-actions justify-end">
               <button
                 onClick={() => supportCampaign(100)}
-                className="btn btn-primary"
+                className={`${styles.btn} btn btn-primary`}
                 disabled={isSupporting}
               >
                 {isSupporting ? "Supporting..." : "Support with 100 SOL"}
@@ -374,7 +377,7 @@ export const ShowCampaign: FC = () => {
   }, [ourWallet, connection]);
 
   return (
-    <div className="campaigns-view p-5">
+    <div className={`${styles.campaignsView} p-5`}>
       <CampaignDetail
         walletKey={ourWallet.publicKey!}
         program={program}

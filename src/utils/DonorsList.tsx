@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from "../pages/campaign/DonorsList.module.css";
 
 const DonorLink = ({ publicKey }) => {
   const explorerBaseUrl = "https://explorer.solana.com";
@@ -21,9 +22,9 @@ const DonorsList = ({ pledgers }) => {
   return (
     <div>
       <h3>Donors List:</h3>
-      <ul>
+      <ul className={styles.donorsContainer}>
         {pledgers.map((pledger, index) => (
-          <li key={index}>
+          <li key={index} className={styles.donorItem}>
             Donor Public Key: <DonorLink publicKey={pledger.pledgerPubkey} />, Amount: {pledger.pledgedAmount.toString()} SOL
           </li>
         ))}

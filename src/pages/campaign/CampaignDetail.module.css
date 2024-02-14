@@ -1,0 +1,28 @@
+/* CampaignDetail.module.css */
+
+.campaignImage {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  @media (max-width: 600px) {
+    .cardTitle {
+      font-size: 1.5rem; 
+    }
+    
+    .cardBody {
+      padding: 1rem; 
+    }
+    
+    .btn {
+      padding: 0.5rem 1rem; 
+    }
+  
+    .campaignsView {
+      padding: 1rem;
+    }
+  
+    .campaignImage {
+    }
+  }
+  
