@@ -37,3 +37,9 @@ a {
   z-index: 1000;
   overflow: visible;
 }
+
+@media (max-width: 768px) {
+  .card {
+    width: 100%; 
+  }
+}
