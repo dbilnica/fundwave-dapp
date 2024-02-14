@@ -17,7 +17,7 @@ import { toast, ToastContainer } from "react-toastify";
 import Image from "next/image";
 import "react-toastify/dist/ReactToastify.css";
 import DonorsList from "utils/DonorsList";
-import styles from './CampaignDetail.module.css';
+import styles from '@/styles/CampaignDetail.module.css';
 
 
 const idl_string = JSON.stringify(idl);

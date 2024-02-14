@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from "../pages/campaign/DonorsList.module.css";
+import styles from "@/styles/DonorsList.module.css";
 
 const DonorLink = ({ publicKey }) => {
   const explorerBaseUrl = "https://explorer.solana.com";

@@ -17,6 +17,7 @@ import {
   getProvider,
 } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
+import styles from "@/styles/AppBar.module.css";
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string);
@@ -46,7 +47,6 @@ export const AppBar: FC = () => {
   const [showDownloadButton, setShowDownloadButton] = useState(false);
   const [hasPortfolio, setHasPortfolio] = useState(false);
   const [program, setProgram] = useState<Program | null>(null);
-
 
   const getProvider = async (): Promise<AnchorProvider> => {
     const provider = new AnchorProvider(
@@ -94,11 +94,11 @@ export const AppBar: FC = () => {
     try {
       const fetchedCampaigns = await program.account.campaign.all();
       const userPublicKeyString = userPublicKey?.toString();
-      
-      const userOwnedCampaign = fetchedCampaigns.find(({account}) => 
-        account.owner.toBase58() === userPublicKeyString
+
+      const userOwnedCampaign = fetchedCampaigns.find(
+        ({ account }) => account.owner.toBase58() === userPublicKeyString
       );
-      
+
       if (userOwnedCampaign) {
         setHasPortfolio(true);
       } else {
@@ -108,7 +108,6 @@ export const AppBar: FC = () => {
       console.error("Failed to fetch campaigns:", error);
     }
   };
-  
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -119,25 +118,29 @@ export const AppBar: FC = () => {
   }, []);
 
   useEffect(() => {
-  const initProgram = async () => {
-    try {
-      if (!ourWallet.connected || !ourWallet.publicKey) return;
-      const anchProvider = await getProvider();
-      const programInstance = new Program(idl_object, programID, anchProvider);
-      setProgram(programInstance);
-    } catch (error) {
-      console.error("Failed to initialize the program:", error);
+    const initProgram = async () => {
+      try {
+        if (!ourWallet.connected || !ourWallet.publicKey) return;
+        const anchProvider = await getProvider();
+        const programInstance = new Program(
+          idl_object,
+          programID,
+          anchProvider
+        );
+        setProgram(programInstance);
+      } catch (error) {
+        console.error("Failed to initialize the program:", error);
+      }
+    };
+
+    initProgram();
+  }, [ourWallet.connected, ourWallet.publicKey, connection]);
+
+  useEffect(() => {
+    if (program && userPublicKey) {
+      getAllCampaigns();
     }
-  };
-
-  initProgram();
-}, [ourWallet.connected, ourWallet.publicKey, connection]);
-
-useEffect(() => {
-  if (program && userPublicKey) {
-    getAllCampaigns();
-  }
-}, [program, userPublicKey]);
+  }, [program, userPublicKey]);
 
   useEffect(() => {
     if (walletConnected) {
@@ -174,8 +177,10 @@ useEffect(() => {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-10">
-      <div className="navbar flex h-20 flex-row md:mb-2 shadow-lg bg-black text-neutral-content border-b border-zinc-600 bg-opacity-66">
-        <div className="navbar-start align-items-center">
+      <div className={`navbar ${styles.navbar} flex h-20 flex-row md:mb-2 shadow-lg bg-black text-neutral-content border-b border-zinc-600 bg-opacity-66`}>
+        <div
+          className={`navbar-start ${styles.navbarStart} align-items-center`}
+        >
           <div className="hidden sm:inline w-22 h-22 md:p-2 ml-10">
             <div className="flex flex-row ml-1">
               <Link href="/">
@@ -192,7 +197,7 @@ useEffect(() => {
           </div>
         </div>
 
-        <div className="navbar-center flex-grow justify-center hidden md:flex gap-6">
+        <div className={`navbar-center ${styles.navbarCenter} flex-grow justify-center hidden md:flex gap-6`}>
           <NavElement
             label="Campaigns"
             href="/"
@@ -203,11 +208,11 @@ useEffect(() => {
             href="/create"
             navigationStarts={() => setIsNavOpen(false)}
           />
-          {hasPortfolio && ( 
+          {hasPortfolio && (
             <NavElement
-            label="Portfolio"
-            href="/portfolio"
-            navigationStarts={() => setIsNavOpen(false)}
+              label="Portfolio"
+              href="/portfolio"
+              navigationStarts={() => setIsNavOpen(false)}
             />
           )}
           {isAdmin && (
@@ -218,17 +223,17 @@ useEffect(() => {
             />
           )}
         </div>
-        <div className="navbar-end"> 
-        {!walletConnected && showDownloadButton && (
-        <a
-          href="https://phantom.app/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn-primary text-lg mr-6"
-        >
-          Download Wallet
-        </a>
-      )}
+        <div className={`navbar-end ${styles.navbarEnd}`}>
+          {!walletConnected && showDownloadButton && (
+            <a
+              href="https://phantom.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${styles.downloadWallet} btn btn-primary text-lg mr-6`}
+            >
+              Download Wallet
+            </a>
+          )}
           <WalletMultiButtonDynamic className="btn-ghost btn-sm rounded-btn text-lg mr-6 " />
         </div>
         <label

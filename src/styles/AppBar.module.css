@@ -1,0 +1,29 @@
+/* AppBar.module.css */
+.downloadWallet {
+  display: inline-block; /* or whatever display it currently has */
+}
+
+@media (max-width: 600px) {
+  .downloadWallet {
+    display: none !important;
+  }
+
+  .navbar {
+    justify-content: flex-start; /* Align items to the start on mobile */
+  }
+
+  .navbar-start {
+    order: 2; /* The logo or start content comes after the wallet button */
+  }
+
+  .navbar-center {
+    order: 3; /* Center content comes last and is hidden on mobile */
+    display: none; /* Hide the center content on mobile */
+  }
+
+  .navbar-end {
+    order: 1; /* This moves the .navbar-end div (Select Wallet button) to the start of the flex container on mobile */
+    flex-grow: 1; /* Allows the button to move to the far left */
+    justify-content: flex-start; /* Align the button to the left */
+  }
+}
