@@ -190,7 +190,6 @@ useEffect(() => {
               </Link>
             </div>
           </div>
-          <WalletMultiButtonDynamic className="btn-ghost btn-sm relative flex md:hidden text-lg " />
         </div>
 
         <div className="navbar-center flex-grow justify-center hidden md:flex gap-6">
