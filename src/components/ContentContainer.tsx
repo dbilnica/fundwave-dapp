@@ -1,14 +1,11 @@
-import { FC } from 'react';
-import Text from './Text';
-import NavElement from './nav-element';
+import { FC } from "react";
+import Text from "./Text";
+import NavElement from "./nav-element";
 import React, { useState, useEffect } from "react";
 import idl from "@/components/idl/crowdfunding_dapp.json";
 
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import {
-  Program,
-  AnchorProvider,
-} from "@project-serum/anchor";
+import { Program, AnchorProvider } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 
 const idl_string = JSON.stringify(idl);
@@ -17,6 +14,9 @@ const programID = new PublicKey(idl.metadata.address);
 
 interface Props {
   children: React.ReactNode;
+}
+
+interface IDLProps {
   program: Program;
   walletKey: PublicKey;
   adminPubkey: String;
@@ -48,7 +48,7 @@ export const ContentContainer: React.FC<Props> = ({ children }) => {
 
       if (adminAccounts.length > 0) {
         const adminPubkey = new PublicKey(
-          (adminAccounts[0].account as Props).adminPubkey
+          (adminAccounts[0].account as IDLProps).adminPubkey
         );
         setAdminPublicKey(adminPubkey);
       } else {
@@ -156,39 +156,26 @@ export const ContentContainer: React.FC<Props> = ({ children }) => {
 
         <ul className="p-4 overflow-y-auto menu w-80 bg-base-100 gap-10 sm:flex items-center">
           <li>
-            <Text variant="heading" className='font-extrabold tracking-tighter text-center text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-fuchsia-500 mt-10'>Menu</Text>
+            <Text
+              variant="heading"
+              className="font-extrabold tracking-tighter text-center text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-fuchsia-500 mt-10"
+            >
+              Menu
+            </Text>
           </li>
           <li>
-            <NavElement
-            label="Campaigns"
-            href="/"
-            />
+            <NavElement label="Campaigns" href="/" />
           </li>
           <li>
-            <NavElement
-            label="Create Campaign"
-            href="/create"
-            />
+            <NavElement label="Create Campaign" href="/create" />
           </li>
 
           <li>
-          {hasPortfolio && (
-            <NavElement
-              label="Portfolio"
-              href="/portfolio"
-            />
-            )}
+            {hasPortfolio && <NavElement label="Portfolio" href="/portfolio" />}
           </li>
-          <li>
-          {isAdmin && (
-            <NavElement
-              label="Admin"
-              href="/admin"
-            />
-            )}
-          </li>
+          <li>{isAdmin && <NavElement label="Admin" href="/admin" />}</li>
         </ul>
       </div>
-    </div >
+    </div>
   );
 };
