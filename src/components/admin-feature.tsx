@@ -16,6 +16,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import styles from "@/styles/AdminFeature.module.css";
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string);
@@ -238,6 +239,16 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     }
   };
 
+  const handleAdminInit = (e) => {
+    e.preventDefault(); // This will prevent the page from refreshing
+    initAdmin();
+  };
+
+  const handleTransferOwnership = (e) => {
+    e.preventDefault(); // This will prevent the page from refreshing
+    transferOwnership();
+  };
+
   const Loader = () => (
     <span className="loading loading-spinner loading-lg"></span>
   );
@@ -267,32 +278,6 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     };
 
     return <div>{formatRemainingTime()}</div>;
-  };
-
-  const ProgressBar: FC<{ goal: number; pledged: number }> = ({
-    goal,
-    pledged,
-  }) => {
-    const progressPercent = Math.min(100, (pledged / goal) * 100);
-
-    return (
-      <div
-        style={{
-          width: "100%",
-          backgroundColor: "#e0e0e0",
-          borderRadius: "8px",
-        }}
-      >
-        <div
-          style={{
-            height: "10px",
-            width: `${progressPercent}%`,
-            background: "linear-gradient(to bottom right, #667eea, #764ba2)",
-            borderRadius: "8px",
-          }}
-        ></div>
-      </div>
-    );
   };
 
   useEffect(() => {
@@ -346,11 +331,8 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
 
     return (
       <>
-      <ToastContainer position="top-center" />
         <div className="card w-96 bg-base-100 shadow-xl m-2">
-        
           <figure className="px-10 pt-10 relative">
-          
             {imageLoading && <Loader />}
             {showImage && (
               <div
@@ -384,40 +366,30 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
               {campaign.account.description}
             </p>
             <div className="mt-auto">
-              <div className="mb-4">
-                <ProgressBar
-                  goal={Number(campaign.account.goal)}
-                  pledged={Number(campaign.account.pledged)}
-                />
-              </div>
               <div className="flex justify-between items-center text-cente">
                 <div className="flex-1">
-                  <p className="text-lg font-bold">{progressPercent}%</p>
-                  <span className="text-sm">achieved</span>
-                </div>
-                <div className="flex-1 border-l border-r border-gray-300">
                   <p className="text-lg font-bold">
-                    {campaign.account.pledged.toString()} SOL
+                    {campaign.account.goal.toString()} SOL
                   </p>
-                  <span className="text-sm">collected</span>
+                  <span className="text-sm">goal</span>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 border-l border-gray-300">
                   <Countdown endTime={endTime} />
-                  <span className="text-sm">remaining</span>
+                  <span className="text-sm">duration</span>
                 </div>
               </div>
               <div className="card-actions justify-center mt-4">
                 <button
-                  onClick={() => reviewCampaign(campaign.publicKey)}
-                  className="btn btn-primary text-lg font-semibold"
+                  onClick={() => cancelCampaign(campaign.publicKey)}
+                  className={`btn ${styles.btnCancel} text-xl font-semibold ml-2`}
                 >
-                  Review Campaign
+                  Cancel
                 </button>
                 <button
-                  onClick={() => cancelCampaign(campaign.publicKey)}
-                  className="btn btn-error text-lg font-semibold ml-2"
+                  onClick={() => reviewCampaign(campaign.publicKey)}
+                  className={`btn ${styles.btnReview} text-xl font-semibold ml-2`}
                 >
-                  Cancel Campaign
+                  Review
                 </button>
               </div>
             </div>
@@ -428,6 +400,32 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   };
   return (
     <>
+      <ToastContainer position="top-center" />
+      <div className="mb-6">
+        <button
+          className="btn btn-wide text-2xl font-bold"
+          onClick={handleAdminInit}
+        >
+          Initialize Admin
+        </button>
+      </div>
+
+      <div className="mb-8">
+        <input
+          id="new-admin-pubkey"
+          type="text"
+          placeholder="Enter new admin public key"
+          value={pubkeyNewAdminInput}
+          onChange={onPubkeyNewAdminInputChange}
+          className="mt-1 block w-3/4 md:w-1/2 lg:w-1/3 mx-auto px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        />
+        <button
+          className="mt-4 btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
+          onClick={handleTransferOwnership}
+        >
+          Transfer Ownership
+        </button>
+      </div>
       <div className="flex flex-wrap justify-start">
         {campaigns.map((c) => (
           <CampaignCard key={c.publicKey.toBase58()} campaign={c} />
