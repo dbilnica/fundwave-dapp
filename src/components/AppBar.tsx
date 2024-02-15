@@ -207,7 +207,7 @@ export const AppBar: FC = () => {
             href="/"
             navigationStarts={() => setIsNavOpen(false)}
           />
-          {walletConnected && (
+          {walletConnected && !isAdmin && (
             <NavElement
               label="Create Campaign"
               href="/create"

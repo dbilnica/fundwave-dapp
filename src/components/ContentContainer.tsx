@@ -188,7 +188,9 @@ export const ContentContainer: React.FC<Props> = ({ children }) => {
           {walletConnected ? (
             <>
               <li>
-                <NavElement label="Create Campaign" href="/create" />
+                {!isAdmin && (
+                  <NavElement label="Create Campaign" href="/create" />
+                )}
               </li>
               {hasPortfolio && (
                 <NavElement label="Portfolio" href="/portfolio" />
