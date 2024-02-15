@@ -47,6 +47,7 @@ export const AppBar: FC = () => {
   const [showDownloadButton, setShowDownloadButton] = useState(false);
   const [hasPortfolio, setHasPortfolio] = useState(false);
   const [program, setProgram] = useState<Program | null>(null);
+  const [showNavElements, setShowNavElements] = useState(false);
 
   const getProvider = async (): Promise<AnchorProvider> => {
     const provider = new AnchorProvider(
@@ -171,6 +172,14 @@ export const AppBar: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ourWallet.connected]);
 
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      setShowNavElements(true);
+    }, 200);
+
+    return () => clearTimeout(delay); // Cleanup the timeout
+  }, []);
+
   if (walletConnected === null) {
     return null;
   }
@@ -202,31 +211,39 @@ export const AppBar: FC = () => {
         <div
           className={`navbar-center ${styles.navbarCenter} flex-grow justify-center hidden md:flex gap-6`}
         >
-          <NavElement
-            label="Campaigns"
-            href="/"
-            navigationStarts={() => setIsNavOpen(false)}
-          />
-          {walletConnected && !isAdmin && (
-            <NavElement
-              label="Create Campaign"
-              href="/create"
-              navigationStarts={() => setIsNavOpen(false)}
-            />
-          )}
-          {hasPortfolio && (
-            <NavElement
-              label="Portfolio"
-              href="/portfolio"
-              navigationStarts={() => setIsNavOpen(false)}
-            />
-          )}
-          {isAdmin && (
-            <NavElement
-              label="Admin"
-              href="/admin"
-              navigationStarts={() => setIsNavOpen(false)}
-            />
+          {showNavElements && (
+            <>
+              <NavElement
+                label="Campaigns"
+                href="/"
+                navigationStarts={() => setIsNavOpen(false)}
+              />
+              {walletConnected && (
+                <>
+                  {!isAdmin && (
+                    <NavElement
+                      label="Create Campaign"
+                      href="/create"
+                      navigationStarts={() => setIsNavOpen(false)}
+                    />
+                  )}
+                  {hasPortfolio && (
+                    <NavElement
+                      label="Portfolio"
+                      href="/portfolio"
+                      navigationStarts={() => setIsNavOpen(false)}
+                    />
+                  )}
+                  {isAdmin && (
+                    <NavElement
+                      label="Admin"
+                      href="/admin"
+                      navigationStarts={() => setIsNavOpen(false)}
+                    />
+                  )}
+                </>
+              )}
+            </>
           )}
         </div>
         <div className={`navbar-end ${styles.navbarEnd}`}>
