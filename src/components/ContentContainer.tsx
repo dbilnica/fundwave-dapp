@@ -7,6 +7,7 @@ import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Program, AnchorProvider } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
+import styles from "@/styles/ContentContainer.module.css";
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string);
@@ -38,6 +39,12 @@ export const ContentContainer: React.FC<Props> = ({ children }) => {
       AnchorProvider.defaultOptions()
     );
     return provider;
+  };
+  const toggleDrawer = () => {
+    const drawer = document.getElementById("my-drawer") as HTMLInputElement;
+    if (drawer) {
+      drawer.checked = !drawer.checked;
+    }
   };
 
   const getAdminPubkey = async () => {
@@ -145,20 +152,32 @@ export const ContentContainer: React.FC<Props> = ({ children }) => {
   }
 
   return (
-    <div className="flex-1 drawer h-52 flex-col justify-between">
-      <input id="my-drawer" type="checkbox" className="grow drawer-toggle" />
-      <div className="items-center drawer-content flex flex-col justify-between">
+    <div
+      className={`flex-1 drawer h-full flex-col justify-between ${styles.drawerContainer}`}
+    >
+      <input
+        id="my-drawer"
+        type="checkbox"
+        className={`drawer-toggle ${styles.drawerToggle}`}
+      />
+      <div
+        className={`drawer-content flex flex-col justify-between ${styles.drawerContent}`}
+      >
+        <button
+          onClick={toggleDrawer}
+          className="btn btn-square btn-ghost md:hidden"
+        ></button>
         {children}
       </div>
       {/* SideBar / Drawer */}
-      <div className="drawer-side">
-        <label htmlFor="my-drawer" className="drawer-overlay gap-6"></label>
+      <div className={`drawer-side ${styles.drawerSide}`}>
+        <label htmlFor="my-drawer" className="drawer-overlay"></label>
 
-        <ul className="p-4 overflow-y-auto menu w-80 bg-base-100 gap-10 sm:flex items-center">
+        <ul className="menu p-4 overflow-y-auto w-80 bg-base-100">
           <li>
             <Text
               variant="heading"
-              className="font-extrabold tracking-tighter text-center text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-fuchsia-500 mt-10"
+              className="font-extrabold tracking-tighter text-center text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-fuchsia-500 mt-20"
             >
               Menu
             </Text>
@@ -166,14 +185,21 @@ export const ContentContainer: React.FC<Props> = ({ children }) => {
           <li>
             <NavElement label="Campaigns" href="/" />
           </li>
-          <li>
-            <NavElement label="Create Campaign" href="/create" />
-          </li>
-
-          <li>
-            {hasPortfolio && <NavElement label="Portfolio" href="/portfolio" />}
-          </li>
-          <li>{isAdmin && <NavElement label="Admin" href="/admin" />}</li>
+          {walletConnected ? (
+            <>
+              <li>
+                <NavElement label="Create Campaign" href="/create" />
+              </li>
+              {hasPortfolio && (
+                <NavElement label="Portfolio" href="/portfolio" />
+              )}
+              {isAdmin && <NavElement label="Admin" href="/admin" />}
+            </>
+          ) : (
+            <li>
+              <NavElement label="Download Wallet" href="https://phantom.app/" />
+            </li>
+          )}
         </ul>
       </div>
     </div>

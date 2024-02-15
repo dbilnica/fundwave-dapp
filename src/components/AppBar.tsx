@@ -177,7 +177,9 @@ export const AppBar: FC = () => {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-10">
-      <div className={`navbar ${styles.navbar} flex h-20 flex-row md:mb-2 shadow-lg bg-black text-neutral-content border-b border-zinc-600 bg-opacity-66`}>
+      <div
+        className={`navbar ${styles.navbar} flex h-20 flex-row md:mb-2 shadow-lg bg-black text-neutral-content border-b border-zinc-600 bg-opacity-66`}
+      >
         <div
           className={`navbar-start ${styles.navbarStart} align-items-center`}
         >
@@ -197,17 +199,21 @@ export const AppBar: FC = () => {
           </div>
         </div>
 
-        <div className={`navbar-center ${styles.navbarCenter} flex-grow justify-center hidden md:flex gap-6`}>
+        <div
+          className={`navbar-center ${styles.navbarCenter} flex-grow justify-center hidden md:flex gap-6`}
+        >
           <NavElement
             label="Campaigns"
             href="/"
             navigationStarts={() => setIsNavOpen(false)}
           />
-          <NavElement
-            label="Create Campaign"
-            href="/create"
-            navigationStarts={() => setIsNavOpen(false)}
-          />
+          {walletConnected && (
+            <NavElement
+              label="Create Campaign"
+              href="/create"
+              navigationStarts={() => setIsNavOpen(false)}
+            />
+          )}
           {hasPortfolio && (
             <NavElement
               label="Portfolio"

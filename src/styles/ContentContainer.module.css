@@ -1,0 +1,21 @@
+/* ContentContainer.module.css */
+.drawer-side {
+  z-index: 1000; /* Higher than the navbar's z-index */
+  margin-top: 60px; /* Height of your navbar. Adjust accordingly */
+  height: calc(100% - 60px); /* Full height minus navbar, prevents overflow */
+  overflow-y: auto; /* Add scrollbar if content is too long */
+}
+
+.drawer-content {
+  padding-top: 60px; /* Height of your navbar. Adjust accordingly */
+}
+
+@media (max-width: 768px) {
+  .drawer-toggle:checked ~ .drawer-content {
+    margin-top: 60px; /* Push content down when drawer is open */
+  }
+  .drawer-toggle:checked ~ .drawer-side {
+    z-index: 1000; /* Ensure the drawer side is above other content */
+    margin-top: 50px; /* Adjust for mobile header height if different */
+  }
+}
