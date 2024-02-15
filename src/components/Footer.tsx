@@ -23,7 +23,7 @@ export const Footer: FC = () => {
                                 </Link>
                             </div>
                             <div className="m-1 sm:text-left place-items-start items-start font-normal tracking-tight text-secondary">
-                                        © 2024 FundWave by David Bilnica
+                                        © 2024 FundWave 💜 by David Bilnica
                             </div>
                         </div>
                     </div>

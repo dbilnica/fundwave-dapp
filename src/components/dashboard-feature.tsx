@@ -68,7 +68,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
 
       const currentTime = new Date().getTime();
 
-      // Filter out ended and ongoing campaigns
       const ongoingCampaigns = fetchedCampaigns.filter(
         (campaign) =>
           new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() >
@@ -80,7 +79,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
           currentTime
       );
 
-      // Sort ongoing campaigns by end time, soonest first
       ongoingCampaigns.sort((a, b) => {
         return (
           a.account.endCampaign.toNumber() - b.account.endCampaign.toNumber()
@@ -102,66 +100,9 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
     }
   };
 
-  const supportCampaign = async (publicKey, amount) => {
-    try {
-      const anchProvider = await getProvider();
-      const program = new Program(idl_object, programID, anchProvider);
-
-      await program.methods
-        .campaignSupport(new BN(amount))
-        .accounts({
-          campaign: publicKey,
-          user: anchProvider.wallet.publicKey,
-          systemProgram: web3.SystemProgram.programId,
-        })
-        .rpc();
-      console.log("Campaign has been successfully supported " + publicKey);
-      setTimeout(getAllCampaigns, 2000);
-    } catch (error) {
-      console.log("Error while supporting");
-    }
-  };
-
   const Loader = () => (
     <span className="loading loading-spinner loading-lg"></span>
   );
-
-  const cancelSupport = async (publicKey) => {
-    try {
-      const anchProvider = await getProvider();
-      const program = new Program(idl_object, programID, anchProvider);
-
-      await program.methods
-        .supportCancel()
-        .accounts({
-          campaign: publicKey,
-          user: anchProvider.wallet.publicKey,
-        })
-        .rpc();
-      console.log("Campaign support been successfully canceled");
-      setTimeout(getAllCampaigns, 2000);
-    } catch (error) {
-      console.log("Error while cancelling support");
-    }
-  };
-
-  const withdrawCampaign = async (publicKey) => {
-    try {
-      const anchProvider = await getProvider();
-      const program = new Program(idl_object, programID, anchProvider);
-
-      await program.methods
-        .campaignWithdraw()
-        .accounts({
-          campaign: publicKey,
-          user: anchProvider.wallet.publicKey,
-        })
-        .rpc();
-      console.log("Campaign has been successfully withdrawed " + publicKey);
-    } catch (error) {
-      console.log("Error while withdrawing");
-    }
-  };
 
   const Countdown: FC<{ endTime: number }> = ({ endTime }) => {
     const [timeLeft, setTimeLeft] = useState(() =>
