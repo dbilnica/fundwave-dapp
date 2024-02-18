@@ -14,6 +14,7 @@ import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
 import Image from "next/image";
+import SearchAndToggleCard from "@/utils/SearchAndToggleCard";
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string);
@@ -32,7 +33,9 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
   const ourWallet = useWallet();
   const { connection } = useConnection();
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showEndedCampaigns, setShowEndedCampaigns] = useState(false);
+  const [isToggled, setIsToggled] = useState(false);
 
   const calculateTimeRemaining = (endTimestamp) => {
     const now = new Date().getTime();
@@ -54,47 +57,29 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
     };
   };
 
-  const getProvider = async (): Promise<AnchorProvider> => {
-    const provider = new AnchorProvider(
-      connection,
-      ourWallet,
-      AnchorProvider.defaultOptions()
-    );
-    return provider;
-  };
-
   const getAllCampaigns = async () => {
     try {
       const fetchedCampaigns = await program.account.campaign.all();
-
       const currentTime = new Date().getTime();
 
-      const ongoingCampaigns = fetchedCampaigns.filter(
-        (campaign) =>
-          new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() >
-          currentTime
-      );
-      const endedCampaigns = fetchedCampaigns.filter(
-        (campaign) =>
-          new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() <=
-          currentTime
+      // Use the showEndedCampaigns state to filter the campaigns
+      const filteredCampaigns = fetchedCampaigns.filter((campaign) =>
+        showEndedCampaigns
+          ? new Date(
+              campaign.account.endCampaign.toNumber() * 1000
+            ).getTime() <= currentTime
+          : new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() >
+            currentTime
       );
 
-      ongoingCampaigns.sort((a, b) => {
-        return (
-          a.account.endCampaign.toNumber() - b.account.endCampaign.toNumber()
-        );
-      });
-
-      endedCampaigns.sort((a, b) => {
+      // Sort campaigns based on the end time
+      filteredCampaigns.sort((a, b) => {
         return (
           b.account.endCampaign.toNumber() - a.account.endCampaign.toNumber()
         );
       });
 
-      const sortedCampaigns = ongoingCampaigns.concat(endedCampaigns);
-
-      setCampaigns(sortedCampaigns);
+      setCampaigns(filteredCampaigns);
       setIsLoading(false);
     } catch (error) {
       setIsLoading(true);
@@ -104,7 +89,10 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
   };
-  
+  const toggleCampaignsView = () => {
+    setShowEndedCampaigns(!showEndedCampaigns); // This will toggle between showing ended campaigns or not
+    // Add any additional logic if needed when toggling the view
+  };
 
   const Loader = () => (
     <span className="loading loading-spinner loading-lg"></span>
@@ -166,15 +154,18 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
   const filteredCampaigns = useMemo(() => {
     if (!searchQuery) return campaigns;
     const lowerCaseSearchQuery = searchQuery.toLowerCase();
-    return campaigns.filter((campaign) =>
-      campaign.account.name.toLowerCase().includes(lowerCaseSearchQuery) ||
-      campaign.account.description.toLowerCase().includes(lowerCaseSearchQuery)
+    return campaigns.filter(
+      (campaign) =>
+        campaign.account.name.toLowerCase().includes(lowerCaseSearchQuery) ||
+        campaign.account.description
+          .toLowerCase()
+          .includes(lowerCaseSearchQuery)
     );
-  }, [campaigns, searchQuery]);  
+  }, [campaigns, searchQuery]);
 
   useEffect(() => {
     getAllCampaigns();
-  }, [walletKey, program]);
+  }, [walletKey, program, showEndedCampaigns]);
 
   if (isLoading) {
     return <Loader />;
@@ -293,20 +284,22 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
   };
   return (
     <>
-      <div className="search-bar-container">
-        <input
-          type="text"
-          placeholder="Search campaigns..."
-          value={searchQuery}
-          onChange={handleSearchChange}
-          className="search-input"
-        />
-      </div>
+      <div>
+        <div className="flex justify-center items-center my-4">
+          <SearchAndToggleCard
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            toggleCampaignsView={toggleCampaignsView}
+            isToggled={isToggled}
+            setIsToggled={setIsToggled}
+          />
+        </div>
 
-      <div className="flex flex-wrap justify-start">
-        {filteredCampaigns.map((c) => (
-          <CampaignCard key={c.publicKey.toBase58()} campaign={c} />
-        ))}
+        <div className="flex flex-wrap justify-start">
+          {filteredCampaigns.map((c) => (
+            <CampaignCard key={c.publicKey.toBase58()} campaign={c} />
+          ))}
+        </div>
       </div>
     </>
   );
@@ -341,7 +334,7 @@ export const ShowCampaigns: FC = () => {
   }, [ourWallet, connection]);
 
   return (
-    <div className="campaigns-view p-5">
+    <div className="campaigns-view">
       <CampaignsTable walletKey={ourWallet.publicKey!} program={program} />
     </div>
   );
