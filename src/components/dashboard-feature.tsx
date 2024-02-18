@@ -1,4 +1,4 @@
-import { useEffect, useState, FC } from "react";
+import { useEffect, useState, FC, useMemo } from "react";
 import {
   BN,
   Program,
@@ -32,6 +32,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
   const ourWallet = useWallet();
   const { connection } = useConnection();
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const calculateTimeRemaining = (endTimestamp) => {
     const now = new Date().getTime();
@@ -100,6 +101,11 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
     }
   };
 
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+  
+
   const Loader = () => (
     <span className="loading loading-spinner loading-lg"></span>
   );
@@ -156,6 +162,15 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
       </div>
     );
   };
+
+  const filteredCampaigns = useMemo(() => {
+    if (!searchQuery) return campaigns;
+    const lowerCaseSearchQuery = searchQuery.toLowerCase();
+    return campaigns.filter((campaign) =>
+      campaign.account.name.toLowerCase().includes(lowerCaseSearchQuery) ||
+      campaign.account.description.toLowerCase().includes(lowerCaseSearchQuery)
+    );
+  }, [campaigns, searchQuery]);  
 
   useEffect(() => {
     getAllCampaigns();
@@ -278,8 +293,18 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
   };
   return (
     <>
+      <div className="search-bar-container">
+        <input
+          type="text"
+          placeholder="Search campaigns..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          className="search-input"
+        />
+      </div>
+
       <div className="flex flex-wrap justify-start">
-        {campaigns.map((c) => (
+        {filteredCampaigns.map((c) => (
           <CampaignCard key={c.publicKey.toBase58()} campaign={c} />
         ))}
       </div>

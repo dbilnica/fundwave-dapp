@@ -9,11 +9,10 @@ import {
   getProvider,
 } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "@/styles/AdminFeature.module.css";
@@ -29,6 +28,7 @@ interface CampaignsTableProps {
 
 export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   const [campaigns, setCampaigns] = useState<ProgramAccount[]>([]);
+  const [adminExists, setAdminExists] = useState<boolean>(false);
   const ourWallet = useWallet();
   const { connection } = useConnection();
   const [isLoading, setIsLoading] = useState(true);
@@ -71,6 +71,18 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
       AnchorProvider.defaultOptions()
     );
     return provider;
+  };
+
+  const getAdminPubkey = async () => {
+    try {
+      const anchProvider = await getProvider();
+      const program = new Program(idl_object, programID, anchProvider);
+      const adminAccounts = await program.account.admin.all();
+      setAdminExists(adminAccounts.length > 0);
+    } catch (error) {
+      console.error("Error fetching admin accounts:", error);
+      setAdminExists(false);
+    }
   };
 
   const getAllCampaigns = async () => {
@@ -240,12 +252,12 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   };
 
   const handleAdminInit = (e) => {
-    e.preventDefault(); // This will prevent the page from refreshing
+    e.preventDefault();
     initAdmin();
   };
 
   const handleTransferOwnership = (e) => {
-    e.preventDefault(); // This will prevent the page from refreshing
+    e.preventDefault();
     transferOwnership();
   };
 
@@ -284,6 +296,10 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     getAllCampaigns();
   }, [walletKey, program]);
 
+  useEffect(() => {
+    getAdminPubkey();
+  }, []);
+
   if (isLoading) {
     return <Loader />;
   }
@@ -295,10 +311,6 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     ).getTime();
     const [imageLoading, setImageLoading] = useState(true);
     const [showImage, setShowImage] = useState(false);
-    const progressPercent = (
-      (Number(campaign.account.pledged) / Number(campaign.account.goal)) *
-      100
-    ).toFixed(1);
     const ipfsProviders = [
       "https://ipfs.io/ipfs/",
       "https://gateway.pinata.cloud/ipfs/",
@@ -332,39 +344,43 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     return (
       <>
         <div className="card w-96 bg-base-100 shadow-xl m-2">
-          <figure className="px-10 pt-10 relative">
-            {imageLoading && <Loader />}
-            {showImage && (
-              <div
-                className="overflow-hidden"
-                style={{ borderRadius: "0.5rem" }}
-              >
-                <Image
-                  src={computeImageUrl()}
-                  alt="Campaign Image"
-                  width={500}
-                  height={300}
-                  onLoad={() => {
-                    setImageLoading(false);
-                  }}
-                  onError={() => {
-                    console.error("Image failed to load");
-                    handleImageError();
-                  }}
-                />
-              </div>
-            )}
-          </figure>
+          <Link href={`/campaign/${campaignId}`} passHref>
+            <figure className="px-10 pt-10 relative">
+              {imageLoading && <Loader />}
+              {showImage && (
+                <div
+                  className="overflow-hidden"
+                  style={{ borderRadius: "0.5rem" }}
+                >
+                  <Image
+                    src={computeImageUrl()}
+                    alt="Campaign Image"
+                    width={500}
+                    height={300}
+                    onLoad={() => {
+                      setImageLoading(false);
+                    }}
+                    onError={() => {
+                      console.error("Image failed to load");
+                      handleImageError();
+                    }}
+                  />
+                </div>
+              )}
+            </figure>
+          </Link>
           <div className="card-body flex flex-col">
-            <h2
-              className="line-clamp-2 card-title text-left text-2xl font-bold mb-1"
-              style={{ textTransform: "uppercase" }}
-            >
-              {campaign.account.name}
-            </h2>
-            <p className="line-clamp-3 text-left text-lg mb-4 flex-grow">
-              {campaign.account.description}
-            </p>
+            <Link href={`/campaign/${campaignId}`} passHref>
+              <h2
+                className="line-clamp-2 card-title text-left text-2xl font-bold mb-1"
+                style={{ textTransform: "uppercase" }}
+              >
+                {campaign.account.name}
+              </h2>
+              <p className="line-clamp-3 text-left text-lg mb-4 flex-grow">
+                {campaign.account.description}
+              </p>
+            </Link>
             <div className="mt-auto">
               <div className="flex justify-between items-center text-cente">
                 <div className="flex-1">
@@ -398,29 +414,36 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
       </>
     );
   };
+
+  if (!adminExists) {
+    return (
+      <>
+        <ToastContainer position="top-center" />
+        <div className="mb-6">
+          <button
+            className="btn btn-wide text-2xl font-bold"
+            onClick={handleAdminInit}
+          >
+            Initialize Admin
+          </button>
+        </div>
+      </>
+    );
+  }
   return (
     <>
       <ToastContainer position="top-center" />
-      <div className="mb-6">
-        <button
-          className="btn btn-wide text-2xl font-bold"
-          onClick={handleAdminInit}
-        >
-          Initialize Admin
-        </button>
-      </div>
-
-      <div className="mb-8">
+      <div className="flex justify-center items-center mb-8 flex-col sm:flex-row">
         <input
           id="new-admin-pubkey"
           type="text"
           placeholder="Enter new admin public key"
           value={pubkeyNewAdminInput}
           onChange={onPubkeyNewAdminInputChange}
-          className="mt-1 block w-3/4 md:w-1/2 lg:w-1/3 mx-auto px-3 py-2 bg-white text-gray-700 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+          className="input input-bordered input-primary w-full max-w-xs mb-4 sm:mb-0 sm:mr-4"
         />
         <button
-          className="mt-4 btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white"
+          className={`btn ${styles.btnOwnership} font-semibold`}
           onClick={handleTransferOwnership}
         >
           Transfer Ownership

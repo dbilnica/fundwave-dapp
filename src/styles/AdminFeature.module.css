@@ -2,10 +2,31 @@
   background-color: #2a0a5e;
   color: #fff;
   border: none;
-  width: 9rem
+  width: 9rem;
 }
 
 .btnCancel {
-    width: 9rem
+  width: 9rem;
+}
+
+.btnOwnership {
+  background-color: #2a0a5e;
+  color: #fff;
+  border: none;
+  font-size: 1.15rem;
+}
+
+@media (max-width: 768px) {
+  #new-admin-pubkey {
+    width: 100%; 
+    margin-bottom: 1rem; 
   }
-  
+
+  .input-button-container {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}

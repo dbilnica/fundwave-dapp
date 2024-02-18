@@ -15,6 +15,7 @@ import {
 import { PublicKey } from "@solana/web3.js";
 import { toast, ToastContainer } from "react-toastify";
 import Image from "next/image"
+import styles from "@/styles/Portfolio.module.css";
 import "react-toastify/dist/ReactToastify.css";
 
 const idl_string = JSON.stringify(idl);
@@ -46,8 +47,6 @@ export const PortfolioDetail: FC<CampaignsTableProps> = ({
     "https://dweb.link/ipfs/",
   ];
 
-  // Inside your CampaignDetail component
-
 const renderDonorsList = () => {
   if (!campaign?.pledgers || campaign.pledgers.length === 0) {
     return <p>No donors yet.</p>;
@@ -71,28 +70,27 @@ const renderDonorsList = () => {
   const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
 
   const getAllCampaigns = async () => {
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
     try {
       const fetchedCampaigns = await program.account.campaign.all();
       
-      // Log each campaign's owner
       console.log("Campaign owners:");
       fetchedCampaigns.forEach(({account}) => {
         console.log(account.owner.toBase58());
       });
   
       const userPublicKeyString = userPublicKey?.toString();
-      console.log("User Public Key:", userPublicKeyString); // Also log the user's public key for comparison
+      console.log("User Public Key:", userPublicKeyString);
       
       const userOwnedCampaign = fetchedCampaigns.find(({account}) => 
         account.owner.toBase58() === userPublicKeyString
       );
       
-      setCampaign(userOwnedCampaign ? userOwnedCampaign.account : null); // Set the single campaign
-      setIsLoading(false); // Loading done
+      setCampaign(userOwnedCampaign ? userOwnedCampaign.account : null);
+      setIsLoading(false);
     } catch (error) {
       console.error("Failed to fetch campaigns:", error);
-      setIsLoading(false); // Loading done, handle the error appropriately
+      setIsLoading(false);
     }
   };
   
@@ -156,10 +154,8 @@ const renderDonorsList = () => {
     if (ourWallet.connected) {
       setWalletConnected(true);
     } else {
-      // If not connected, we explicitly set it to false.
       setWalletConnected(false);
     }
-    // We only want to run this effect after ourWallet state has been initialized.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ourWallet.connected]);
 
@@ -170,57 +166,8 @@ const renderDonorsList = () => {
   }, [userPublicKey, program]);
 
   if (walletConnected === null) {
-    return null; // Or some loading indicator if you prefer.
+    return null; 
   }
-
-  const supportCampaign = async (amount) => {
-    setIsSupporting(true);
-    try {
-      const anchProvider = await getProvider();
-      const program = new Program(idl_object, programID, anchProvider);
-      console.log("Test");
-      console.log(campaignPublicKey);
-
-      await program.methods
-        .campaignSupport(new BN(amount))
-        .accounts({
-          campaign: campaignPublicKey,
-          user: anchProvider.wallet.publicKey,
-          systemProgram: web3.SystemProgram.programId,
-        })
-        .rpc();
-      toast.success(
-        `Campaign "${campaign.name}" has been successfully reviewed!`
-      );
-      console.log(
-        "Campaign has been successfully supported " + campaignPublicKey
-      );
-      setTimeout(getAllCampaigns, 2000);
-    } catch (error) {
-      toast.error("Error while supporting!", error);
-      console.log("Error while supporting", error);
-    }
-    setIsSupporting(false);
-  };
-
-  const cancelSupport = async (publicKey) => {
-    try {
-      const anchProvider = await getProvider();
-      const program = new Program(idl_object, programID, anchProvider);
-
-      await program.methods
-        .supportCancel()
-        .accounts({
-          campaign: publicKey,
-          user: anchProvider.wallet.publicKey,
-        })
-        .rpc();
-      console.log("Campaign support been successfully canceled");
-      setTimeout(getAllCampaigns, 2000);
-    } catch (error) {
-      console.log("Error while cancelling support");
-    }
-  };
 
   const withdrawCampaign = async (publicKey) => {
     try {
@@ -384,19 +331,6 @@ const renderDonorsList = () => {
             {renderDonorsList()}
 
             <div className="card-actions justify-end">
-              <button
-                onClick={() => supportCampaign(100)}
-                className="btn btn-primary"
-                disabled={isSupporting}
-              >
-                {isSupporting ? "Supporting..." : "Support with 100 SOL"}
-              </button>
-              <button
-                onClick={() => cancelSupport(campaignPublicKey)}
-                className="btn btn-error"
-              >
-                Cancel Support
-              </button>
               <button
                 onClick={() => withdrawCampaign(campaignPublicKey)}
                 className="btn btn-warning"
