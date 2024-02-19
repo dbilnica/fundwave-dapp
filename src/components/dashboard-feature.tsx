@@ -61,28 +61,29 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
     try {
       const fetchedCampaigns = await program.account.campaign.all();
       const currentTime = new Date().getTime();
-
-      const filteredCampaigns = fetchedCampaigns.filter((campaign) =>
-        showEndedCampaigns
+      const activeAndFilteredCampaigns = fetchedCampaigns.filter((campaign) =>
+        (showEndedCampaigns
           ? new Date(
               campaign.account.endCampaign.toNumber() * 1000
             ).getTime() <= currentTime
           : new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() >
-            currentTime
+            currentTime) && campaign.account.isActive
       );
-
-      filteredCampaigns.sort((a, b) => {
+  
+      activeAndFilteredCampaigns.sort((a, b) => {
         return (
-          b.account.endCampaign.toNumber() - a.account.endCampaign.toNumber()
+          a.account.endCampaign.toNumber() - b.account.endCampaign.toNumber()
         );
       });
-
-      setCampaigns(filteredCampaigns);
+  
+      setCampaigns(activeAndFilteredCampaigns);
       setIsLoading(false);
     } catch (error) {
+      console.error("Error fetching campaigns:", error);
       setIsLoading(true);
     }
   };
+  
 
   const toggleCampaignsView = () => {
     setShowEndedCampaigns(!showEndedCampaigns);
