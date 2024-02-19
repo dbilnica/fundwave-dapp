@@ -1,5 +1,6 @@
 import React from 'react';
 import { XIcon } from '@heroicons/react/outline';
+import styles from "@/styles/AdminFeature.module.css";
 
 const SearchAndToggleCard = ({ searchQuery, setSearchQuery, toggleCampaignsView, isToggled, setIsToggled, onClose }) => {
     const inputBgColor = `rgb(45, 46, 49)`; 
@@ -22,7 +23,7 @@ const SearchAndToggleCard = ({ searchQuery, setSearchQuery, toggleCampaignsView,
 
                     <div className="flex justify-center mt-4">
                         <label className="label cursor-pointer">
-                            <span className="label-text mr-2">Campaigns after deadline</span>
+                        <span className={`label-text ${styles.labelText} mr-2`}>Campaigns after deadline</span>
                             <input
                                 type="checkbox"
                                 checked={isToggled}

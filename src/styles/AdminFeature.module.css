@@ -30,3 +30,17 @@
     width: 100%;
   }
 }
+
+.cardBody {
+  padding-bottom: 0;
+  min-height: 0;
+}
+
+.labelText {
+  font-size: 1.2rem;
+}
+
+.disabledCampaign {
+  opacity: 0.5; /* Makes the campaign appear faded */
+  pointer-events: none; /* Disables all interactions */
+}

@@ -1,4 +1,4 @@
-import { useEffect, useState, FC } from "react";
+import { useEffect, useState, FC, useMemo } from "react";
 import {
   BN,
   Program,
@@ -13,6 +13,8 @@ import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import Image from "next/image";
 import Link from "next/link";
+import { SearchIcon } from "@heroicons/react/outline";
+import SearchAndToggleAdmin from "@/utils/SearchAndToggleAdmin";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "@/styles/AdminFeature.module.css";
@@ -32,6 +34,13 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   const ourWallet = useWallet();
   const { connection } = useConnection();
   const [isLoading, setIsLoading] = useState(true);
+  const [showEndedCampaigns, setShowEndedCampaigns] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isToggled, setIsToggled] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [disabledCampaigns, setDisabledCampaigns] = useState<Set<string>>(
+    new Set()
+  );
 
   const calculateTimeRemaining = (endTimestamp) => {
     const now = new Date().getTime();
@@ -53,12 +62,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     };
   };
 
-  const [pubkeyInput, setPubkeyInput] = useState("");
   const [pubkeyNewAdminInput, setPubkeyNewAdminInput] = useState("");
-
-  const onPubkeyInputChange = (event) => {
-    setPubkeyInput(event.target.value);
-  };
 
   const onPubkeyNewAdminInputChange = (event) => {
     setPubkeyNewAdminInput(event.target.value);
@@ -88,39 +92,34 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   const getAllCampaigns = async () => {
     try {
       const fetchedCampaigns = await program.account.campaign.all();
-
       const currentTime = new Date().getTime();
-
-      const ongoingCampaigns = fetchedCampaigns.filter(
+      const activeAndFilteredCampaigns = fetchedCampaigns.filter(
         (campaign) =>
-          new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() >
-          currentTime
-      );
-      const endedCampaigns = fetchedCampaigns.filter(
-        (campaign) =>
-          new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() <=
-          currentTime
+          (showEndedCampaigns
+            ? new Date(
+                campaign.account.endCampaign.toNumber() * 1000
+              ).getTime() <= currentTime
+            : new Date(
+                campaign.account.endCampaign.toNumber() * 1000
+              ).getTime() > currentTime) && campaign.account.isActive
       );
 
-      ongoingCampaigns.sort((a, b) => {
+      activeAndFilteredCampaigns.sort((a, b) => {
         return (
           a.account.endCampaign.toNumber() - b.account.endCampaign.toNumber()
         );
       });
 
-      endedCampaigns.sort((a, b) => {
-        return (
-          b.account.endCampaign.toNumber() - a.account.endCampaign.toNumber()
-        );
-      });
-
-      const sortedCampaigns = ongoingCampaigns.concat(endedCampaigns);
-
-      setCampaigns(sortedCampaigns);
+      setCampaigns(activeAndFilteredCampaigns);
       setIsLoading(false);
     } catch (error) {
+      console.error("Error fetching campaigns:", error);
       setIsLoading(true);
     }
+  };
+
+  const toggleCampaignsView = () => {
+    setShowEndedCampaigns(!showEndedCampaigns);
   };
 
   const reviewCampaign = async (publicKey) => {
@@ -144,6 +143,9 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
           user: anchProvider.wallet.publicKey,
         })
         .rpc();
+      setDisabledCampaigns(
+        (prevDisabled) => new Set([...prevDisabled, publicKey.toBase58()])
+      );
       toast.success(
         `Campaign "${campaignToReview.account.name}" has been successfully reviewed!`
       );
@@ -178,6 +180,10 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
           user: anchProvider.wallet.publicKey,
         })
         .rpc();
+      setDisabledCampaigns(
+        (prevDisabled) => new Set([...prevDisabled, publicKey.toBase58()])
+      );
+
       toast.success(
         `Campaign "${campaignToCancel.account.name}" has been successfully canceled!`
       );
@@ -292,9 +298,21 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     return <div>{formatRemainingTime()}</div>;
   };
 
+  const filteredCampaigns = useMemo(() => {
+    if (!searchQuery) return campaigns;
+    const lowerCaseSearchQuery = searchQuery.toLowerCase();
+    return campaigns.filter(
+      (campaign) =>
+        campaign.account.name.toLowerCase().includes(lowerCaseSearchQuery) ||
+        campaign.account.description
+          .toLowerCase()
+          .includes(lowerCaseSearchQuery)
+    );
+  }, [campaigns, searchQuery]);
+
   useEffect(() => {
     getAllCampaigns();
-  }, [walletKey, program]);
+  }, [walletKey, program, showEndedCampaigns]);
 
   useEffect(() => {
     getAdminPubkey();
@@ -310,6 +328,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
       campaign.account.endCampaign.toNumber() * 1000
     ).getTime();
     const [imageLoading, setImageLoading] = useState(true);
+    const isDisabled = disabledCampaigns.has(campaign.publicKey.toBase58());
     const [showImage, setShowImage] = useState(false);
     const ipfsProviders = [
       "https://ipfs.io/ipfs/",
@@ -343,7 +362,11 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
 
     return (
       <>
-        <div className="card w-96 bg-base-100 shadow-xl m-2">
+        <div
+          className={`card w-96 bg-base-100 shadow-xl m-2 ${
+            isDisabled ? styles.disabledCampaign : ""
+          }`}
+        >
           <Link href={`/campaign/${campaignId}`} passHref>
             <figure className="px-10 pt-10 relative">
               {imageLoading && <Loader />}
@@ -396,14 +419,24 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
               </div>
               <div className="card-actions justify-center mt-4">
                 <button
-                  onClick={() => cancelCampaign(campaign.publicKey)}
-                  className={`btn ${styles.btnCancel} text-xl font-semibold ml-2`}
+                  onClick={() =>
+                    !isDisabled && cancelCampaign(campaign.publicKey)
+                  }
+                  className={`btn ${
+                    styles.btnCancel
+                  } text-xl font-semibold ml-2 ${isDisabled ? "disabled" : ""}`}
+                  disabled={isDisabled}
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => reviewCampaign(campaign.publicKey)}
-                  className={`btn ${styles.btnReview} text-xl font-semibold ml-2`}
+                  onClick={() =>
+                    !isDisabled && reviewCampaign(campaign.publicKey)
+                  }
+                  className={`btn ${
+                    styles.btnReview
+                  } text-xl font-semibold ml-2 ${isDisabled ? "disabled" : ""}`}
+                  disabled={isDisabled}
                 >
                   Review
                 </button>
@@ -418,7 +451,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   if (!adminExists) {
     return (
       <>
-        <ToastContainer position="top-center" />
+        <ToastContainer position="bottom-center" />
         <div className="mb-6">
           <button
             className="btn btn-wide text-2xl font-bold"
@@ -432,25 +465,33 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   }
   return (
     <>
-      <ToastContainer position="top-center" />
-      <div className="flex justify-center items-center mb-8 flex-col sm:flex-row">
-        <input
-          id="new-admin-pubkey"
-          type="text"
-          placeholder="Enter new admin public key"
-          value={pubkeyNewAdminInput}
-          onChange={onPubkeyNewAdminInputChange}
-          className="input input-bordered input-primary w-full max-w-xs mb-4 sm:mb-0 sm:mr-4"
-        />
-        <button
-          className={`btn ${styles.btnOwnership} font-semibold`}
-          onClick={handleTransferOwnership}
-        >
-          Transfer Ownership
-        </button>
+      <ToastContainer position="bottom-center" />
+      <div className="search-toggle">
+        {!showSearch && (
+          <button
+            className="search-button"
+            onClick={() => setShowSearch(!showSearch)}
+            aria-label="Toggle search"
+          >
+            <SearchIcon className="h-10 w-10 text-white" />
+          </button>
+        )}
       </div>
+      {showSearch && (
+        <SearchAndToggleAdmin
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          pubkeyNewAdminInput={pubkeyNewAdminInput}
+          onPubkeyNewAdminInputChange={onPubkeyNewAdminInputChange}
+          handleTransferOwnership={handleTransferOwnership}
+          toggleCampaignsView={toggleCampaignsView}
+          isToggled={isToggled}
+          setIsToggled={setIsToggled}
+          onClose={() => setShowSearch(false)}
+        />
+      )}
       <div className="flex flex-wrap justify-start">
-        {campaigns.map((c) => (
+        {filteredCampaigns.map((c) => (
           <CampaignCard key={c.publicKey.toBase58()} campaign={c} />
         ))}
       </div>
