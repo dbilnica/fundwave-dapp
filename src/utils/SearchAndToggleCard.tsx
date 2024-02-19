@@ -1,14 +1,14 @@
 import React from 'react';
+import { XIcon } from '@heroicons/react/outline';
 
-const SearchAndToggleCard = ({ searchQuery, setSearchQuery, toggleCampaignsView, isToggled, setIsToggled }) => {
-    // Convert the HEX color to RGB to use in inline style for better opacity control if needed
-    const inputBgColor = `rgb(45, 46, 49)`; // Color from your image
-
+const SearchAndToggleCard = ({ searchQuery, setSearchQuery, toggleCampaignsView, isToggled, setIsToggled, onClose }) => {
+    const inputBgColor = `rgb(45, 46, 49)`; 
+    const toggleOffColor = 'rgb(75, 85, 99)';
+    const toggleOnColor = 'rgb(115, 103, 240)';
     return (
-        <div className="flex justify-center items-center my-4 w-full"> {/* Removed h-full to not force full height */}
-            <div className="card thick-card-style bg-base-100 shadow-xl mx-2 w-full max-w-2xl"> {/* Adjusted the width here */}
+        <div className="flex justify-center items-center w-full">
+            <div className="card thick-card-style bg-base-100 shadow-xl mx-2 w-full max-w-xl">
                 <div className="card-body">
-                    {/* Search Bar - apply the HEX color */}
                     <div className="form-control">
                         <input
                             type="text"
@@ -16,14 +16,12 @@ const SearchAndToggleCard = ({ searchQuery, setSearchQuery, toggleCampaignsView,
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="input input-bordered input-primary w-full"
-                            style={{ backgroundColor: inputBgColor }} // Inline style for the background color
+                            style={{ backgroundColor: inputBgColor }}
                         />
                     </div>
 
-                    {/* Toggle Switch */}
                     <div className="flex justify-center mt-4">
                         <label className="label cursor-pointer">
-                            {/* Update the label text here */}
                             <span className="label-text mr-2">Campaigns after deadline</span>
                             <input
                                 type="checkbox"
@@ -32,10 +30,20 @@ const SearchAndToggleCard = ({ searchQuery, setSearchQuery, toggleCampaignsView,
                                     setIsToggled(!isToggled);
                                     toggleCampaignsView();
                                 }}
-                                className="toggle toggle-primary"
+                                className={`toggle ${isToggled ? 'toggle-on' : 'toggle-off'}`}
+                                style={{ 
+                                  backgroundColor: isToggled ? toggleOnColor : toggleOffColor
+                                }}
                             />
                         </label>
                     </div>
+                    <button
+                        onClick={onClose}
+                        className="absolute top-0 right-0 m-2 text-xl"
+                        aria-label="Close"
+                    >
+                        <XIcon className="h-6 w-6" />
+                    </button>
                 </div>
             </div>
         </div>

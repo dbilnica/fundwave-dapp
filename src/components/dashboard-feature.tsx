@@ -14,6 +14,7 @@ import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
 import Image from "next/image";
+import { SearchIcon } from "@heroicons/react/outline";
 import SearchAndToggleCard from "@/utils/SearchAndToggleCard";
 
 const idl_string = JSON.stringify(idl);
@@ -30,12 +31,11 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
   walletKey,
 }) => {
   const [campaigns, setCampaigns] = useState<ProgramAccount[]>([]);
-  const ourWallet = useWallet();
-  const { connection } = useConnection();
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [showEndedCampaigns, setShowEndedCampaigns] = useState(false);
   const [isToggled, setIsToggled] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
   const calculateTimeRemaining = (endTimestamp) => {
     const now = new Date().getTime();
@@ -62,7 +62,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
       const fetchedCampaigns = await program.account.campaign.all();
       const currentTime = new Date().getTime();
 
-      // Use the showEndedCampaigns state to filter the campaigns
       const filteredCampaigns = fetchedCampaigns.filter((campaign) =>
         showEndedCampaigns
           ? new Date(
@@ -72,7 +71,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
             currentTime
       );
 
-      // Sort campaigns based on the end time
       filteredCampaigns.sort((a, b) => {
         return (
           b.account.endCampaign.toNumber() - a.account.endCampaign.toNumber()
@@ -86,12 +84,8 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
     }
   };
 
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-  };
   const toggleCampaignsView = () => {
-    setShowEndedCampaigns(!showEndedCampaigns); // This will toggle between showing ended campaigns or not
-    // Add any additional logic if needed when toggling the view
+    setShowEndedCampaigns(!showEndedCampaigns);
   };
 
   const Loader = () => (
@@ -285,15 +279,27 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
   return (
     <>
       <div>
-        <div className="flex justify-center items-center my-4">
-          <SearchAndToggleCard
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            toggleCampaignsView={toggleCampaignsView}
-            isToggled={isToggled}
-            setIsToggled={setIsToggled}
-          />
-        </div>
+      <div className="search-toggle">
+        {!showSearch && (
+          <button
+            className="search-button"
+            onClick={() => setShowSearch(!showSearch)}
+            aria-label="Toggle search"
+          >
+            <SearchIcon className="h-10 w-10 text-white" />
+          </button>
+        )}
+      </div>
+      {showSearch && (
+        <SearchAndToggleCard
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          toggleCampaignsView={toggleCampaignsView}
+          isToggled={isToggled}
+          setIsToggled={setIsToggled}
+          onClose={() => setShowSearch(false)}
+        />
+      )}
 
         <div className="flex flex-wrap justify-start">
           {filteredCampaigns.map((c) => (
