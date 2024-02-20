@@ -34,33 +34,12 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   const ourWallet = useWallet();
   const { connection } = useConnection();
   const [isLoading, setIsLoading] = useState(true);
-  const [showEndedCampaigns, setShowEndedCampaigns] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isToggled, setIsToggled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [disabledCampaigns, setDisabledCampaigns] = useState<Set<string>>(
     new Set()
   );
-
-  const calculateTimeRemaining = (endTimestamp) => {
-    const now = new Date().getTime();
-    const distance = endTimestamp - now;
-
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor(
-      (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-    );
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-    return {
-      days,
-      hours,
-      minutes,
-      seconds,
-      distance,
-    };
-  };
 
   const [pubkeyNewAdminInput, setPubkeyNewAdminInput] = useState("");
 
@@ -92,36 +71,16 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   const getAllCampaigns = async () => {
     try {
       const fetchedCampaigns = await program.account.campaign.all();
-      const currentTime = new Date().getTime();
-      const activeAndFilteredCampaigns = fetchedCampaigns.filter(
-        (campaign) =>
-          (showEndedCampaigns
-            ? new Date(
-                campaign.account.endCampaign.toNumber() * 1000
-              ).getTime() <= currentTime
-            : new Date(
-                campaign.account.endCampaign.toNumber() * 1000
-              ).getTime() > currentTime) && campaign.account.isActive
-      );
-
-      activeAndFilteredCampaigns.sort((a, b) => {
-        return (
-          a.account.endCampaign.toNumber() - b.account.endCampaign.toNumber()
-        );
-      });
-
-      setCampaigns(activeAndFilteredCampaigns);
+      fetchedCampaigns.sort((a, b) => a.account.duration.toNumber() - b.account.duration.toNumber());
+  
+      setCampaigns(fetchedCampaigns);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching campaigns:", error);
       setIsLoading(true);
     }
   };
-
-  const toggleCampaignsView = () => {
-    setShowEndedCampaigns(!showEndedCampaigns);
-  };
-
+  
   const reviewCampaign = async (publicKey) => {
     try {
       const anchProvider = await getProvider();
@@ -271,33 +230,6 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     <span className="loading loading-spinner loading-lg"></span>
   );
 
-  const Countdown: FC<{ endTime: number }> = ({ endTime }) => {
-    const [timeLeft, setTimeLeft] = useState(() =>
-      calculateTimeRemaining(endTime)
-    );
-
-    useEffect(() => {
-      const timer = setInterval(() => {
-        const newTimeLeft = calculateTimeRemaining(endTime);
-        setTimeLeft(newTimeLeft);
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }, [endTime]);
-
-    const formatRemainingTime = () => {
-      if (timeLeft.distance <= 0) {
-        return "ended";
-      } else if (timeLeft.days > 0) {
-        return `${timeLeft.days} days`;
-      } else {
-        return `${timeLeft.hours}h ${timeLeft.minutes}m`;
-      }
-    };
-
-    return <div>{formatRemainingTime()}</div>;
-  };
-
   const filteredCampaigns = useMemo(() => {
     if (!searchQuery) return campaigns;
     const lowerCaseSearchQuery = searchQuery.toLowerCase();
@@ -312,7 +244,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
 
   useEffect(() => {
     getAllCampaigns();
-  }, [walletKey, program, showEndedCampaigns]);
+  }, [walletKey, program]);
 
   useEffect(() => {
     getAdminPubkey();
@@ -324,9 +256,6 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
 
   const CampaignCard: FC<{ campaign: ProgramAccount }> = ({ campaign }) => {
     const campaignId = campaign.publicKey.toBase58();
-    const endTime = new Date(
-      campaign.account.endCampaign.toNumber() * 1000
-    ).getTime();
     const [imageLoading, setImageLoading] = useState(true);
     const isDisabled = disabledCampaigns.has(campaign.publicKey.toBase58());
     const [showImage, setShowImage] = useState(false);
@@ -337,7 +266,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     ];
 
     const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
-
+    const durationInDays = Math.floor(campaign.account.duration.toNumber() / (60 * 60 * 24));
     const computeImageUrl = () => {
       const baseUri = ipfsProviders[currentGatewayIndex % ipfsProviders.length];
       return `${baseUri}${campaign.account.imageIpfsHash}`;
@@ -413,9 +342,9 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
                   <span className="text-sm">goal</span>
                 </div>
                 <div className="flex-1 border-l border-gray-300">
-                  <Countdown endTime={endTime} />
-                  <span className="text-sm">duration</span>
-                </div>
+                <p className="text-lg font-bold">{durationInDays}</p>
+                <span className="text-sm">days</span>
+              </div>
               </div>
               <div className="card-actions justify-center mt-4">
                 <button

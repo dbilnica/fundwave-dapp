@@ -243,6 +243,10 @@
             "type": "bool"
           },
           {
+            "name": "isCanceled",
+            "type": "bool"
+          },
+          {
             "name": "isPledged",
             "type": "bool"
           },
@@ -378,9 +382,34 @@
       "code": 6017,
       "name": "InsufficientFundsForRent",
       "msg": "The pledge cannot be canceled due to insufficient funds for rent"
+    },
+    {
+      "code": 6018,
+      "name": "CampaignAlreadyReviewed",
+      "msg": "The campaign has already been reviewed."
+    },
+    {
+      "code": 6019,
+      "name": "CampaignAlreadyCanceled",
+      "msg": "The campaign has already been canceled."
+    },
+    {
+      "code": 6020,
+      "name": "InvalidIpfsHash",
+      "msg": "Invalid IPFS hash provided."
+    },
+    {
+      "code": 6021,
+      "name": "CampaignAlreadyActive",
+      "msg": "The campaign is already active."
+    },
+    {
+      "code": 6022,
+      "name": "CampaignCanceled",
+      "msg": "The campaign has been canceled."
     }
   ],
   "metadata": {
-    "address": "5Fa4VKuwtbqq923pdpaKRTRMiJQHN4jBXDTxzpCdHadQ"
+    "address": "HBsCD8df8xPQWZ5EbrjN5oZJzsYTzvNMRV1QKrJxwcmi"
   }
 }
