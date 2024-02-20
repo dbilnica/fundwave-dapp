@@ -215,6 +215,9 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
       console.error("Error while transfering the ownership: ", error);
     }
   };
+  const toggleCampaignsView = () => {
+    //
+  };
 
   const handleAdminInit = (e) => {
     e.preventDefault();
@@ -257,7 +260,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   const CampaignCard: FC<{ campaign: ProgramAccount }> = ({ campaign }) => {
     const campaignId = campaign.publicKey.toBase58();
     const [imageLoading, setImageLoading] = useState(true);
-    const isDisabled = disabledCampaigns.has(campaign.publicKey.toBase58());
+    const { isActive, isCanceled } = campaign.account;
     const [showImage, setShowImage] = useState(false);
     const ipfsProviders = [
       "https://ipfs.io/ipfs/",
@@ -291,31 +294,19 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
 
     return (
       <>
-        <div
-          className={`card w-96 bg-base-100 shadow-xl m-2 ${
-            isDisabled ? styles.disabledCampaign : ""
-          }`}
-        >
+        <div className={`card w-96 bg-base-100 shadow-xl m-2`}>
           <Link href={`/campaign/${campaignId}`} passHref>
             <figure className="px-10 pt-10 relative">
               {imageLoading && <Loader />}
               {showImage && (
-                <div
-                  className="overflow-hidden"
-                  style={{ borderRadius: "0.5rem" }}
-                >
+                <div className="overflow-hidden" style={{ borderRadius: "0.5rem" }}>
                   <Image
                     src={computeImageUrl()}
                     alt="Campaign Image"
                     width={500}
                     height={300}
-                    onLoad={() => {
-                      setImageLoading(false);
-                    }}
-                    onError={() => {
-                      console.error("Image failed to load");
-                      handleImageError();
-                    }}
+                    onLoad={() => setImageLoading(false)}
+                    onError={handleImageError}
                   />
                 </div>
               )}
@@ -323,10 +314,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
           </Link>
           <div className="card-body flex flex-col">
             <Link href={`/campaign/${campaignId}`} passHref>
-              <h2
-                className="line-clamp-2 card-title text-left text-2xl font-bold mb-1"
-                style={{ textTransform: "uppercase" }}
-              >
+              <h2 className="line-clamp-2 card-title text-left text-2xl font-bold mb-1" style={{ textTransform: "uppercase" }}>
                 {campaign.account.name}
               </h2>
               <p className="line-clamp-3 text-left text-lg mb-4 flex-grow">
@@ -334,7 +322,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
               </p>
             </Link>
             <div className="mt-auto">
-              <div className="flex justify-between items-center text-cente">
+              <div className="flex justify-between items-center text-center">
                 <div className="flex-1">
                   <p className="text-lg font-bold">
                     {campaign.account.goal.toString()} SOL
@@ -342,33 +330,33 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
                   <span className="text-sm">goal</span>
                 </div>
                 <div className="flex-1 border-l border-gray-300">
-                <p className="text-lg font-bold">{durationInDays}</p>
-                <span className="text-sm">days</span>
-              </div>
+                  <p className="text-lg font-bold">{durationInDays} days</p>
+                  <span className="text-sm"></span>
+                </div>
               </div>
               <div className="card-actions justify-center mt-4">
-                <button
-                  onClick={() =>
-                    !isDisabled && cancelCampaign(campaign.publicKey)
-                  }
-                  className={`btn ${
-                    styles.btnCancel
-                  } text-xl font-semibold ml-2 ${isDisabled ? "disabled" : ""}`}
-                  disabled={isDisabled}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() =>
-                    !isDisabled && reviewCampaign(campaign.publicKey)
-                  }
-                  className={`btn ${
-                    styles.btnReview
-                  } text-xl font-semibold ml-2 ${isDisabled ? "disabled" : ""}`}
-                  disabled={isDisabled}
-                >
-                  Review
-                </button>
+                {(!isActive && !isCanceled) && (
+                  <>
+                    <button
+                      onClick={() => reviewCampaign(campaign.publicKey)}
+                      className={`btn ${styles.btnReview} text-xl font-semibold ml-2`}
+                    >
+                      Review
+                    </button>
+                    <button
+                      onClick={() => cancelCampaign(campaign.publicKey)}
+                      className={`btn ${styles.btnCancel} text-xl font-semibold ml-2`}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+                {(isActive && !isCanceled) && (
+                  <span className="text-xl font-semibold ml-2">Campaign Reviewed</span>
+                )}
+                {isCanceled && (
+                  <span className="text-xl font-semibold ml-2">Campaign Canceled</span>
+                )}
               </div>
             </div>
           </div>
