@@ -1,12 +1,10 @@
-import { useEffect, useState, FC, useMemo } from "react";
+import { useEffect, useState, FC, useMemo, useCallback} from "react";
 import {
-  BN,
   Program,
   ProgramAccount,
   AnchorProvider,
   web3,
   utils,
-  getProvider,
 } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import idl from "@/components/idl/crowdfunding_dapp.json";
@@ -35,11 +33,13 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   const { connection } = useConnection();
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isToggled, setIsToggled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-  const [disabledCampaigns, setDisabledCampaigns] = useState<Set<string>>(
-    new Set()
-  );
+  const [isReviewedToggled, setIsReviewedToggled] = useState(false);
+  const [isCanceledToggled, setIsCanceledToggled] = useState(false);
+  const toggleReviewedCampaignsView = () =>
+    setIsReviewedToggled((prev) => !prev);
+  const toggleCanceledCampaignsView = () =>
+    setIsCanceledToggled((prev) => !prev);
 
   const [pubkeyNewAdminInput, setPubkeyNewAdminInput] = useState("");
 
@@ -68,20 +68,20 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     }
   };
 
-  const getAllCampaigns = async () => {
+  const getAllCampaigns = useCallback(async () => {
     try {
       const fetchedCampaigns = await program.account.campaign.all();
       fetchedCampaigns.sort(
         (a, b) => a.account.duration.toNumber() - b.account.duration.toNumber()
       );
-
+  
       setCampaigns(fetchedCampaigns);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching campaigns:", error);
       setIsLoading(true);
     }
-  };
+  }, [program]);
 
   const reviewCampaign = async (publicKey) => {
     try {
@@ -104,9 +104,6 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
           user: anchProvider.wallet.publicKey,
         })
         .rpc();
-      setDisabledCampaigns(
-        (prevDisabled) => new Set([...prevDisabled, publicKey.toBase58()])
-      );
       toast.success(
         `Campaign "${campaignToReview.account.name}" has been successfully reviewed!`
       );
@@ -141,10 +138,6 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
           user: anchProvider.wallet.publicKey,
         })
         .rpc();
-      setDisabledCampaigns(
-        (prevDisabled) => new Set([...prevDisabled, publicKey.toBase58()])
-      );
-
       toast.success(
         `Campaign "${campaignToCancel.account.name}" has been successfully canceled!`
       );
@@ -217,9 +210,6 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
       console.error("Error while transfering the ownership: ", error);
     }
   };
-  const toggleCampaignsView = () => {
-    //
-  };
 
   const handleAdminInit = (e) => {
     e.preventDefault();
@@ -236,20 +226,21 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   );
 
   const filteredCampaigns = useMemo(() => {
-    if (!searchQuery) return campaigns;
-    const lowerCaseSearchQuery = searchQuery.toLowerCase();
-    return campaigns.filter(
-      (campaign) =>
-        campaign.account.name.toLowerCase().includes(lowerCaseSearchQuery) ||
-        campaign.account.description
-          .toLowerCase()
-          .includes(lowerCaseSearchQuery)
-    );
-  }, [campaigns, searchQuery]);
+    return campaigns.filter((campaign) => {
+      const { isActive, isCanceled } = campaign.account;
+
+      if (isReviewedToggled && !isCanceledToggled) {
+        return isActive && !isCanceled;
+      } else if (!isReviewedToggled && isCanceledToggled) {
+        return isCanceled;
+      }
+      return true;
+    });
+  }, [campaigns, isReviewedToggled, isCanceledToggled]);
 
   useEffect(() => {
     getAllCampaigns();
-  }, [walletKey, program]);
+  }, [getAllCampaigns]);
 
   useEffect(() => {
     getAdminPubkey();
@@ -433,9 +424,12 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
           pubkeyNewAdminInput={pubkeyNewAdminInput}
           onPubkeyNewAdminInputChange={onPubkeyNewAdminInputChange}
           handleTransferOwnership={handleTransferOwnership}
-          toggleCampaignsView={toggleCampaignsView}
-          isToggled={isToggled}
-          setIsToggled={setIsToggled}
+          toggleReviewedCampaignsView={toggleReviewedCampaignsView}
+          toggleCanceledCampaignsView={toggleCanceledCampaignsView}
+          isReviewedToggled={isReviewedToggled}
+          setIsReviewedToggled={setIsReviewedToggled}
+          isCanceledToggled={isCanceledToggled}
+          setIsCanceledToggled={setIsCanceledToggled}
           onClose={() => setShowSearch(false)}
         />
       )}
