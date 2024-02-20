@@ -1,15 +1,10 @@
-import { useEffect, useState, FC, useMemo } from "react";
+import { useEffect, useState, FC, useMemo, useCallback } from "react";
 import {
-  BN,
   Program,
   ProgramAccount,
   AnchorProvider,
-  web3,
-  utils,
-  getProvider,
 } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
@@ -27,8 +22,7 @@ interface CampaignsTableProps {
 }
 
 export const CampaignsTable: FC<CampaignsTableProps> = ({
-  program,
-  walletKey,
+  program
 }) => {
   const [campaigns, setCampaigns] = useState<ProgramAccount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,33 +51,35 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
     };
   };
 
-  const getAllCampaigns = async () => {
-    try {
-      const fetchedCampaigns = await program.account.campaign.all();
-      const currentTime = new Date().getTime();
-      const activeAndFilteredCampaigns = fetchedCampaigns.filter((campaign) =>
-        (showEndedCampaigns
-          ? new Date(
-              campaign.account.endCampaign.toNumber() * 1000
-            ).getTime() <= currentTime
-          : new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() >
-            currentTime) && campaign.account.isActive
-      );
-  
-      activeAndFilteredCampaigns.sort((a, b) => {
-        return (
-          a.account.endCampaign.toNumber() - b.account.endCampaign.toNumber()
+  const getAllCampaigns = useCallback(async () => {
+    if (program && program.account && program.account.campaign) {
+      try {
+        const fetchedCampaigns = await program.account.campaign.all();
+        const currentTime = new Date().getTime();
+        const validAndFilteredCampaigns = fetchedCampaigns.filter(campaign => 
+          campaign.account !== null &&
+          (showEndedCampaigns
+            ? new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() <= currentTime
+            : new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() > currentTime) &&
+          campaign.account.isActive
         );
-      });
   
-      setCampaigns(activeAndFilteredCampaigns);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error fetching campaigns:", error);
-      setIsLoading(true);
+        validAndFilteredCampaigns.sort((a, b) => {
+          return (
+            a.account.endCampaign.toNumber() - b.account.endCampaign.toNumber()
+          );
+        });
+  
+        setCampaigns(validAndFilteredCampaigns);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching campaigns:", error);
+        setIsLoading(true);
+      }
+    } else {
+      console.log('Program not initialized');
     }
-  };
-  
+  }, [program, showEndedCampaigns]);
 
   const toggleCampaignsView = () => {
     setShowEndedCampaigns(!showEndedCampaigns);
@@ -160,7 +156,8 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
 
   useEffect(() => {
     getAllCampaigns();
-  }, [walletKey, program, showEndedCampaigns]);
+  }, [getAllCampaigns]);
+  
 
   if (isLoading) {
     return <Loader />;
@@ -317,28 +314,28 @@ export const ShowCampaigns: FC = () => {
   const { connection } = useConnection();
   const [program, setProgram] = useState<Program | null>(null);
 
-  const getProvider = async (): Promise<AnchorProvider> => {
-    const provider = new AnchorProvider(
-      connection,
-      ourWallet,
-      AnchorProvider.defaultOptions()
-    );
-    return provider;
-  };
-
-  const initializeProgram = async () => {
+  const initializeProgram = useCallback(async () => {
+    const getProvider = async (): Promise<AnchorProvider> => {
+      const provider = new AnchorProvider(
+        connection,
+        ourWallet,
+        AnchorProvider.defaultOptions()
+      );
+      return provider;
+    };
+  
     try {
       const anchProvider = await getProvider();
       const program = new Program(idl_object, programID, anchProvider);
       setProgram(program);
     } catch (error) {
-      console.error("Error while program initialization");
+      console.error("Error while program initialization:", error);
     }
-  };
+  }, [connection, ourWallet]);
 
   useEffect(() => {
     initializeProgram();
-  }, [ourWallet, connection]);
+  }, [initializeProgram]);
 
   return (
     <div className="campaigns-view">

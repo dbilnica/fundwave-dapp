@@ -8,12 +8,10 @@ const SearchAndToggleAdmin = ({
   pubkeyNewAdminInput,
   onPubkeyNewAdminInputChange,
   handleTransferOwnership,
-  toggleReviewedCampaignsView, // Updated to handle reviewed campaigns
-  toggleCanceledCampaignsView, // Added to handle canceled campaigns
-  isReviewedToggled, // Updated state for reviewed campaigns
-  setIsReviewedToggled, // Setter for reviewed campaigns
-  isCanceledToggled, // State for canceled campaigns
-  setIsCanceledToggled, // Setter for canceled campaigns
+  toggleReviewedCampaignsView,
+  toggleCanceledCampaignsView,
+  isReviewedToggled, 
+  isCanceledToggled,
   onClose,
 }) => {
   const inputBgColor = `rgb(45, 46, 49)`;
@@ -61,7 +59,7 @@ const SearchAndToggleAdmin = ({
               <input
                 type="checkbox"
                 checked={isReviewedToggled}
-                onChange={toggleReviewedCampaignsView} // Just notify the parent
+                onChange={toggleReviewedCampaignsView}
                 className={`toggle ${
                   isReviewedToggled ? "toggle-on" : "toggle-off"
                 }`}
@@ -79,7 +77,7 @@ const SearchAndToggleAdmin = ({
               <input
                 type="checkbox"
                 checked={isCanceledToggled}
-                onChange={toggleCanceledCampaignsView} // Just notify the parent
+                onChange={toggleCanceledCampaignsView}
                 className={`toggle ${
                   isCanceledToggled ? "toggle-on" : "toggle-off"
                 }`}

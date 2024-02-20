@@ -69,19 +69,27 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   };
 
   const getAllCampaigns = useCallback(async () => {
-    try {
-      const fetchedCampaigns = await program.account.campaign.all();
-      fetchedCampaigns.sort(
-        (a, b) => a.account.duration.toNumber() - b.account.duration.toNumber()
-      );
-  
-      setCampaigns(fetchedCampaigns);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error fetching campaigns:", error);
-      setIsLoading(true);
+    if (program && program.account && program.account.campaign) {
+      try {
+        const fetchedCampaigns = await program.account.campaign.all();
+        const validCampaigns = fetchedCampaigns.filter(c => c.account !== null);
+        
+        validCampaigns.sort(
+          (a, b) => a.account.duration.toNumber() - b.account.duration.toNumber()
+        );
+    
+        setCampaigns(validCampaigns);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching campaigns:", error);
+        setIsLoading(true);
+      }
+    } else {
+      console.log('Program not initialized');
     }
   }, [program]);
+  
+  
 
   const reviewCampaign = async (publicKey) => {
     try {
@@ -227,7 +235,12 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
 
   const filteredCampaigns = useMemo(() => {
     return campaigns.filter((campaign) => {
-      const { isActive, isCanceled } = campaign.account;
+      const { isActive, isCanceled } = campaign.account ?? { isActive: false, isCanceled: false };
+
+
+      console.log(campaigns);
+
+
 
       if (isReviewedToggled && !isCanceledToggled) {
         return isActive && !isCanceled;
@@ -239,8 +252,11 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   }, [campaigns, isReviewedToggled, isCanceledToggled]);
 
   useEffect(() => {
-    getAllCampaigns();
-  }, [getAllCampaigns]);
+    if (program) {
+      getAllCampaigns();
+    }
+  }, [program, getAllCampaigns]);
+  
 
   useEffect(() => {
     getAdminPubkey();
@@ -457,14 +473,17 @@ export const ShowAdmin: FC = () => {
   };
 
   const initializeProgram = async () => {
-    try {
-      const anchProvider = await getProvider();
-      const program = new Program(idl_object, programID, anchProvider);
-      setProgram(program);
-    } catch (error) {
-      console.error("Error while program initialization");
+    if (!program) {
+      try {
+        const anchProvider = await getProvider();
+        const newProgram = new Program(idl_object, programID, anchProvider);
+        setProgram(newProgram);
+      } catch (error) {
+        console.error("Error while program initialization", error);
+      }
     }
   };
+  
 
   useEffect(() => {
     initializeProgram();
