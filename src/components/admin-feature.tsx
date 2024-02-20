@@ -71,8 +71,10 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
   const getAllCampaigns = async () => {
     try {
       const fetchedCampaigns = await program.account.campaign.all();
-      fetchedCampaigns.sort((a, b) => a.account.duration.toNumber() - b.account.duration.toNumber());
-  
+      fetchedCampaigns.sort(
+        (a, b) => a.account.duration.toNumber() - b.account.duration.toNumber()
+      );
+
       setCampaigns(fetchedCampaigns);
       setIsLoading(false);
     } catch (error) {
@@ -80,7 +82,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
       setIsLoading(true);
     }
   };
-  
+
   const reviewCampaign = async (publicKey) => {
     try {
       const anchProvider = await getProvider();
@@ -269,7 +271,9 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     ];
 
     const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
-    const durationInDays = Math.floor(campaign.account.duration.toNumber() / (60 * 60 * 24));
+    const durationInDays = Math.floor(
+      campaign.account.duration.toNumber() / (60 * 60 * 24)
+    );
     const computeImageUrl = () => {
       const baseUri = ipfsProviders[currentGatewayIndex % ipfsProviders.length];
       return `${baseUri}${campaign.account.imageIpfsHash}`;
@@ -299,7 +303,10 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
             <figure className="px-10 pt-10 relative">
               {imageLoading && <Loader />}
               {showImage && (
-                <div className="overflow-hidden" style={{ borderRadius: "0.5rem" }}>
+                <div
+                  className="overflow-hidden"
+                  style={{ borderRadius: "0.5rem" }}
+                >
                   <Image
                     src={computeImageUrl()}
                     alt="Campaign Image"
@@ -314,7 +321,10 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
           </Link>
           <div className="card-body flex flex-col">
             <Link href={`/campaign/${campaignId}`} passHref>
-              <h2 className="line-clamp-2 card-title text-left text-2xl font-bold mb-1" style={{ textTransform: "uppercase" }}>
+              <h2
+                className="line-clamp-2 card-title text-left text-2xl font-bold mb-1"
+                style={{ textTransform: "uppercase" }}
+              >
                 {campaign.account.name}
               </h2>
               <p className="line-clamp-3 text-left text-lg mb-4 flex-grow">
@@ -335,7 +345,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
                 </div>
               </div>
               <div className="card-actions justify-center mt-4">
-                {(!isActive && !isCanceled) && (
+                {!isActive && !isCanceled && (
                   <>
                     <button
                       onClick={() => reviewCampaign(campaign.publicKey)}
@@ -351,11 +361,33 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
                     </button>
                   </>
                 )}
-                {(isActive && !isCanceled) && (
-                  <span className="text-xl font-semibold ml-2">Campaign Reviewed</span>
+                {isActive && !isCanceled && (
+                  <>
+                    <div className="card-actions justify-center">
+                      <Link href={`/campaign/${campaignId}`} passHref>
+                        <button
+                          className="btn btn-wide text-xl font-semibold ml-2"
+                          style={{ width: "100%" }}
+                        >
+                          Campaign Reviewed
+                        </button>
+                      </Link>
+                    </div>
+                  </>
                 )}
                 {isCanceled && (
-                  <span className="text-xl font-semibold ml-2">Campaign Canceled</span>
+                  <>
+                    <div className="card-actions justify-center">
+                      <Link href={`/campaign/${campaignId}`} passHref>
+                        <button
+                          className="btn btn-wide text-xl font-semibold ml-2"
+                          style={{ width: "100%" }}
+                        >
+                          Campaign Canceled
+                        </button>
+                      </Link>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
