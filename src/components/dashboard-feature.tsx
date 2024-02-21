@@ -1,12 +1,9 @@
 import { useEffect, useState, FC, useMemo, useCallback } from "react";
-import {
-  Program,
-  ProgramAccount,
-  AnchorProvider,
-} from "@project-serum/anchor";
+import { Program, ProgramAccount, AnchorProvider } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { shortenAddress } from "@/utils/shortenAddress";
 import Link from "next/link";
 import Image from "next/image";
 import { SearchIcon } from "@heroicons/react/outline";
@@ -21,9 +18,7 @@ interface CampaignsTableProps {
   walletKey: PublicKey;
 }
 
-export const CampaignsTable: FC<CampaignsTableProps> = ({
-  program
-}) => {
+export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
   const [campaigns, setCampaigns] = useState<ProgramAccount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,20 +51,25 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
       try {
         const fetchedCampaigns = await program.account.campaign.all();
         const currentTime = new Date().getTime();
-        const validAndFilteredCampaigns = fetchedCampaigns.filter(campaign => 
-          campaign.account !== null &&
-          (showEndedCampaigns
-            ? new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() <= currentTime
-            : new Date(campaign.account.endCampaign.toNumber() * 1000).getTime() > currentTime) &&
-          campaign.account.isActive
+        const validAndFilteredCampaigns = fetchedCampaigns.filter(
+          (campaign) =>
+            campaign.account !== null &&
+            (showEndedCampaigns
+              ? new Date(
+                  campaign.account.endCampaign.toNumber() * 1000
+                ).getTime() <= currentTime
+              : new Date(
+                  campaign.account.endCampaign.toNumber() * 1000
+                ).getTime() > currentTime) &&
+            campaign.account.isActive
         );
-  
+
         validAndFilteredCampaigns.sort((a, b) => {
           return (
             a.account.endCampaign.toNumber() - b.account.endCampaign.toNumber()
           );
         });
-  
+
         setCampaigns(validAndFilteredCampaigns);
         setIsLoading(false);
       } catch (error) {
@@ -77,7 +77,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
         setIsLoading(true);
       }
     } else {
-      console.log('Program not initialized');
+      console.log("Program not initialized");
     }
   }, [program, showEndedCampaigns]);
 
@@ -157,7 +157,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
   useEffect(() => {
     getAllCampaigns();
   }, [getAllCampaigns]);
-  
 
   if (isLoading) {
     return <Loader />;
@@ -168,6 +167,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
     const endTime = new Date(
       campaign.account.endCampaign.toNumber() * 1000
     ).getTime();
+    const isCampaignEnded = new Date().getTime() > endTime;
     const [imageLoading, setImageLoading] = useState(true);
     const [showImage, setShowImage] = useState(false);
     const progressPercent = (
@@ -179,6 +179,11 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
       "https://gateway.pinata.cloud/ipfs/",
       "https://dweb.link/ipfs/",
     ];
+    const explorerBaseUrl = "https://explorer.solana.com";
+    const networkParam = "?cluster=devnet";
+    const ownerPubkey = campaign.account.owner.toString();
+    const explorerUrl = `${explorerBaseUrl}/address/${ownerPubkey}${networkParam}`;
+    const shortenedOwnerPubkey = shortenAddress(ownerPubkey);
 
     const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
 
@@ -259,13 +264,23 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
                 <span className="text-sm">remaining</span>
               </div>
             </div>
+            <div className="flex-1 mt-3">
+              <a
+                href={explorerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-indigo-800 hover:text-indigo-900 visited:text-purple-800"
+              >
+                {shortenedOwnerPubkey}
+              </a>
+            </div>
             <div className="card-actions justify-center">
               <Link href={`/campaign/${campaignId}`} passHref>
                 <button
-                  className="btn btn-wide text-2xl font-bold mt-5"
+                  className="btn btn-wide text-2xl font-bold mt-4"
                   style={{ width: "100%" }}
                 >
-                  Support campaign
+                  {isCampaignEnded ? "Ended Campaign" : "Support Campaign"}{" "}
                 </button>
               </Link>
             </div>
@@ -274,30 +289,39 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({
       </div>
     );
   };
+
+  if (!filteredCampaigns.length) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-lg font-semibold">No campaigns to load</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div>
-      <div className="search-toggle">
-        {!showSearch && (
-          <button
-            className="search-button"
-            onClick={() => setShowSearch(!showSearch)}
-            aria-label="Toggle search"
-          >
-            <SearchIcon className="h-10 w-10 text-white" />
-          </button>
+        <div className="search-toggle">
+          {!showSearch && (
+            <button
+              className="search-button"
+              onClick={() => setShowSearch(!showSearch)}
+              aria-label="Toggle search"
+            >
+              <SearchIcon className="h-10 w-10 text-white" />
+            </button>
+          )}
+        </div>
+        {showSearch && (
+          <SearchAndToggleCard
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            toggleCampaignsView={toggleCampaignsView}
+            isToggled={isToggled}
+            setIsToggled={setIsToggled}
+            onClose={() => setShowSearch(false)}
+          />
         )}
-      </div>
-      {showSearch && (
-        <SearchAndToggleCard
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          toggleCampaignsView={toggleCampaignsView}
-          isToggled={isToggled}
-          setIsToggled={setIsToggled}
-          onClose={() => setShowSearch(false)}
-        />
-      )}
 
         <div className="flex flex-wrap justify-start">
           {filteredCampaigns.map((c) => (
@@ -323,7 +347,7 @@ export const ShowCampaigns: FC = () => {
       );
       return provider;
     };
-  
+
     try {
       const anchProvider = await getProvider();
       const program = new Program(idl_object, programID, anchProvider);
