@@ -236,16 +236,21 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
   const filteredCampaigns = useMemo(() => {
     return campaigns.filter((campaign) => {
       const { isActive, isCanceled } = campaign.account ?? { isActive: false, isCanceled: false };
-
-      if (isReviewedToggled && !isCanceledToggled) {
-        return isActive && !isCanceled;
-      } else if (!isReviewedToggled && isCanceledToggled) {
-        return isCanceled;
+      const matchesSearchQuery = searchQuery.trim() === "" || 
+        campaign.account.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        campaign.account.description.toLowerCase().includes(searchQuery.toLowerCase());
+  
+      if (isReviewedToggled && isCanceledToggled) {
+        return matchesSearchQuery && (isActive || isCanceled);
+      } else if (isReviewedToggled) {
+        return matchesSearchQuery && isActive;
+      } else if (isCanceledToggled) {
+        return matchesSearchQuery && isCanceled;
       }
-      return true;
+      return matchesSearchQuery;
     });
-  }, [campaigns, isReviewedToggled, isCanceledToggled]);
-
+  }, [campaigns, isReviewedToggled, isCanceledToggled, searchQuery]);
+  
   useEffect(() => {
     if (program) {
       getAllCampaigns();
