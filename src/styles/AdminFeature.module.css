@@ -18,8 +18,8 @@
 
 @media (max-width: 768px) {
   #new-admin-pubkey {
-    width: 100%; 
-    margin-bottom: 1rem; 
+    width: 100%;
+    margin-bottom: 1rem;
   }
 
   .input-button-container {
@@ -29,11 +29,6 @@
   .btn {
     width: 100%;
   }
-}
-
-.cardBody {
-  padding-bottom: 0;
-  min-height: 0;
 }
 
 .labelText {

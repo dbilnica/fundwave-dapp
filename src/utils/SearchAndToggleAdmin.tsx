@@ -19,9 +19,9 @@ const SearchAndToggleAdmin = ({
   const toggleOnColor = "rgb(115, 103, 240)";
 
   return (
-    <div className="flex justify-center items-center w-full">
+    <div className="flex justify-center items-center w-full mb-3">
       <div className="card thick-card-style bg-base-100 shadow-xl mx-2 w-full max-w-xl">
-        <div className={`card-body ${styles.cardBody}`}>
+        <div className="card-body">
           <div className="form-control">
             <input
               type="text"
@@ -32,27 +32,8 @@ const SearchAndToggleAdmin = ({
               style={{ backgroundColor: inputBgColor }}
             />
           </div>
-
-          <div className="flex justify-center items-center mb-2 flex-col sm:flex-row">
-            <input
-              id="new-admin-pubkey"
-              type="text"
-              placeholder="Enter new admin public key"
-              value={pubkeyNewAdminInput}
-              onChange={onPubkeyNewAdminInputChange}
-              className="input input-bordered input-primary w-full max-w-xs mb-4 sm:mb-0 sm:mr-4"
-              style={{ backgroundColor: inputBgColor }}
-            />
-            <button
-              className={`btn ${styles.btnOwnership} font-semibold`}
-              onClick={handleTransferOwnership}
-            >
-              Transfer Ownership
-            </button>
-          </div>
-
-          <div className="flex justify-between items-center mb-3">
-            <label className="label cursor-pointer">
+          <div className="flex justify-between items-center flex-col sm:flex-row">
+            <label className="label cursor-pointer mb-4 sm:mb-0 sm:mr-4">
               <span className={`label-text ${styles.labelText} mr-2`}>
                 Reviewed Campaigns
               </span>
@@ -89,7 +70,23 @@ const SearchAndToggleAdmin = ({
               />
             </label>
           </div>
-
+          <div className="flex justify-center items-center flex-col sm:flex-row">
+            <input
+              id="new-admin-pubkey"
+              type="text"
+              placeholder="Enter new admin public key"
+              value={pubkeyNewAdminInput}
+              onChange={onPubkeyNewAdminInputChange}
+              className="input input-bordered input-primary w-full max-w-xs mb-4 sm:mb-0 sm:mr-4"
+              style={{ backgroundColor: inputBgColor }}
+            />
+            <button
+              className={`btn ${styles.btnOwnership} font-semibold`}
+              onClick={handleTransferOwnership}
+            >
+              Transfer Ownership
+            </button>
+          </div>
           <button
             onClick={onClose}
             className="absolute top-0 right-0 m-2 text-xl"

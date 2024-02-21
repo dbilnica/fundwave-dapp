@@ -1,4 +1,4 @@
-import { useEffect, useState, FC, useMemo, useCallback} from "react";
+import { useEffect, useState, FC, useMemo, useCallback } from "react";
 import {
   Program,
   ProgramAccount,
@@ -55,7 +55,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
     );
     return provider;
   }, [connection, ourWallet]);
-  
+
   const getAdminPubkey = useCallback(async () => {
     try {
       const anchProvider = await getProvider();
@@ -66,18 +66,21 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
       console.error("Error fetching admin accounts:", error);
       setAdminExists(false);
     }
-  }, [getProvider]);  
+  }, [getProvider]);
 
   const getAllCampaigns = useCallback(async () => {
     if (program && program.account && program.account.campaign) {
       try {
         const fetchedCampaigns = await program.account.campaign.all();
-        const validCampaigns = fetchedCampaigns.filter(c => c.account !== null);
-        
-        validCampaigns.sort(
-          (a, b) => a.account.duration.toNumber() - b.account.duration.toNumber()
+        const validCampaigns = fetchedCampaigns.filter(
+          (c) => c.account !== null
         );
-    
+
+        validCampaigns.sort(
+          (a, b) =>
+            a.account.duration.toNumber() - b.account.duration.toNumber()
+        );
+
         setCampaigns(validCampaigns);
         setIsLoading(false);
       } catch (error) {
@@ -85,11 +88,9 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
         setIsLoading(true);
       }
     } else {
-      console.log('Program not initialized');
+      console.log("Program not initialized");
     }
   }, [program]);
-  
-  
 
   const reviewCampaign = async (publicKey) => {
     try {
@@ -235,11 +236,19 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
 
   const filteredCampaigns = useMemo(() => {
     return campaigns.filter((campaign) => {
-      const { isActive, isCanceled } = campaign.account ?? { isActive: false, isCanceled: false };
-      const matchesSearchQuery = searchQuery.trim() === "" || 
-        campaign.account.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        campaign.account.description.toLowerCase().includes(searchQuery.toLowerCase());
-  
+      const { isActive, isCanceled } = campaign.account ?? {
+        isActive: false,
+        isCanceled: false,
+      };
+      const matchesSearchQuery =
+        searchQuery.trim() === "" ||
+        campaign.account.name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        campaign.account.description
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
+
       if (isReviewedToggled && isCanceledToggled) {
         return matchesSearchQuery && (isActive || isCanceled);
       } else if (isReviewedToggled) {
@@ -250,18 +259,18 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
       return matchesSearchQuery;
     });
   }, [campaigns, isReviewedToggled, isCanceledToggled, searchQuery]);
-  
+
+  const noCampaignsAvailable = !isLoading && filteredCampaigns.length === 0;
+
   useEffect(() => {
     if (program) {
       getAllCampaigns();
     }
   }, [program, getAllCampaigns]);
-  
 
   useEffect(() => {
     getAdminPubkey();
   }, [getAdminPubkey]);
-  
 
   if (isLoading) {
     return <Loader />;
@@ -349,7 +358,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
                 </div>
                 <div className="flex-1 border-l border-gray-300">
                   <p className="text-lg font-bold">{durationInDays} days</p>
-                  <span className="text-sm"></span>
+                  <span className="text-sm">duration</span>
                 </div>
               </div>
               <div className="card-actions justify-center mt-4">
@@ -449,9 +458,13 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
         />
       )}
       <div className="flex flex-wrap justify-start">
-        {filteredCampaigns.map((c) => (
-          <CampaignCard key={c.publicKey.toBase58()} campaign={c} />
-        ))}
+        {noCampaignsAvailable ? (
+          <p className="text-center w-full text-lg">No campaigns to load</p>
+        ) : (
+          filteredCampaigns.map((c) => (
+            <CampaignCard key={c.publicKey.toBase58()} campaign={c} />
+          ))
+        )}
       </div>
     </>
   );
@@ -471,7 +484,7 @@ export const ShowAdmin: FC = () => {
       );
       return provider;
     };
-  
+
     try {
       const anchProvider = await getProvider();
       const program = new Program(idl_object, programID, anchProvider);
