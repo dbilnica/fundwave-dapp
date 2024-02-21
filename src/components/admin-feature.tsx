@@ -13,6 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { SearchIcon } from "@heroicons/react/outline";
 import SearchAndToggleAdmin from "@/utils/SearchAndToggleAdmin";
+import { shortenAddress } from "@/utils/shortenAddress";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "@/styles/AdminFeature.module.css";
@@ -286,6 +287,11 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
       "https://gateway.pinata.cloud/ipfs/",
       "https://dweb.link/ipfs/",
     ];
+    const explorerBaseUrl = "https://explorer.solana.com";
+    const networkParam = "?cluster=devnet";
+    const ownerPubkey = campaign.account.owner.toString();
+    const explorerUrl = `${explorerBaseUrl}/address/${ownerPubkey}${networkParam}`;
+    const shortenedOwnerPubkey = shortenAddress(ownerPubkey);
 
     const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
     const durationInDays = Math.floor(
@@ -360,6 +366,16 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
                   <p className="text-lg font-bold">{durationInDays} days</p>
                   <span className="text-sm">duration</span>
                 </div>
+              </div>
+              <div className="flex-1 mt-2 mb-2">
+                <a
+                  href={explorerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-indigo-700 hover:text-indigo-900 visited:text-purple-700"
+                >
+                  {shortenedOwnerPubkey}
+                </a>
               </div>
               <div className="card-actions justify-center mt-4">
                 {!isActive && !isCanceled && (

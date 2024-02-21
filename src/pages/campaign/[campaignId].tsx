@@ -247,13 +247,12 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
 
   useEffect(() => {
     if (campaign) {
-      // Check if campaign is not null
       const timeoutId = setTimeout(() => {
         setShowImage(true);
       }, 500);
       return () => clearTimeout(timeoutId);
     }
-  }, [campaign?.imageIpfsHash]); // Use optional chaining to safely access imageIpfsHash
+  }, [campaign?.imageIpfsHash]);
 
   if (!campaign) {
     return <Loader />;
