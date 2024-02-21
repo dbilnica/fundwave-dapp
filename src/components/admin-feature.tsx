@@ -26,7 +26,7 @@ interface CampaignsTableProps {
   walletKey: PublicKey;
 }
 
-export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
+export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
   const [campaigns, setCampaigns] = useState<ProgramAccount[]>([]);
   const [adminExists, setAdminExists] = useState<boolean>(false);
   const ourWallet = useWallet();
@@ -47,16 +47,16 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     setPubkeyNewAdminInput(event.target.value);
   };
 
-  const getProvider = async (): Promise<AnchorProvider> => {
+  const getProvider = useCallback(async () => {
     const provider = new AnchorProvider(
       connection,
       ourWallet,
       AnchorProvider.defaultOptions()
     );
     return provider;
-  };
-
-  const getAdminPubkey = async () => {
+  }, [connection, ourWallet]);
+  
+  const getAdminPubkey = useCallback(async () => {
     try {
       const anchProvider = await getProvider();
       const program = new Program(idl_object, programID, anchProvider);
@@ -66,7 +66,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
       console.error("Error fetching admin accounts:", error);
       setAdminExists(false);
     }
-  };
+  }, [getProvider]);  
 
   const getAllCampaigns = useCallback(async () => {
     if (program && program.account && program.account.campaign) {
@@ -237,11 +237,6 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
     return campaigns.filter((campaign) => {
       const { isActive, isCanceled } = campaign.account ?? { isActive: false, isCanceled: false };
 
-
-      console.log(campaigns);
-
-
-
       if (isReviewedToggled && !isCanceledToggled) {
         return isActive && !isCanceled;
       } else if (!isReviewedToggled && isCanceledToggled) {
@@ -260,7 +255,8 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
 
   useEffect(() => {
     getAdminPubkey();
-  }, []);
+  }, [getAdminPubkey]);
+  
 
   if (isLoading) {
     return <Loader />;
@@ -443,9 +439,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program, walletKey }) => {
           toggleReviewedCampaignsView={toggleReviewedCampaignsView}
           toggleCanceledCampaignsView={toggleCanceledCampaignsView}
           isReviewedToggled={isReviewedToggled}
-          setIsReviewedToggled={setIsReviewedToggled}
           isCanceledToggled={isCanceledToggled}
-          setIsCanceledToggled={setIsCanceledToggled}
           onClose={() => setShowSearch(false)}
         />
       )}
@@ -463,31 +457,28 @@ export const ShowAdmin: FC = () => {
   const { connection } = useConnection();
   const [program, setProgram] = useState<Program | null>(null);
 
-  const getProvider = async (): Promise<AnchorProvider> => {
-    const provider = new AnchorProvider(
-      connection,
-      ourWallet,
-      AnchorProvider.defaultOptions()
-    );
-    return provider;
-  };
-
-  const initializeProgram = async () => {
-    if (!program) {
-      try {
-        const anchProvider = await getProvider();
-        const newProgram = new Program(idl_object, programID, anchProvider);
-        setProgram(newProgram);
-      } catch (error) {
-        console.error("Error while program initialization", error);
-      }
-    }
-  };
+  const initializeProgram = useCallback(async () => {
+    const getProvider = async (): Promise<AnchorProvider> => {
+      const provider = new AnchorProvider(
+        connection,
+        ourWallet,
+        AnchorProvider.defaultOptions()
+      );
+      return provider;
+    };
   
+    try {
+      const anchProvider = await getProvider();
+      const program = new Program(idl_object, programID, anchProvider);
+      setProgram(program);
+    } catch (error) {
+      console.error("Error while program initialization:", error);
+    }
+  }, [connection, ourWallet]);
 
   useEffect(() => {
     initializeProgram();
-  }, [ourWallet, connection]);
+  }, [initializeProgram]);
 
   return (
     <div className="campaigns-view p-5">

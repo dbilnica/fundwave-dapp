@@ -10,7 +10,7 @@ const SearchAndToggleAdmin = ({
   handleTransferOwnership,
   toggleReviewedCampaignsView,
   toggleCanceledCampaignsView,
-  isReviewedToggled, 
+  isReviewedToggled,
   isCanceledToggled,
   onClose,
 }) => {
