@@ -283,9 +283,8 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
     const { isActive, isCanceled } = campaign.account;
     const [showImage, setShowImage] = useState(false);
     const ipfsProviders = [
-      "https://ipfs.io/ipfs/",
-      "https://gateway.pinata.cloud/ipfs/",
       "https://dweb.link/ipfs/",
+      "https://gateway.pinata.cloud/ipfs/",
     ];
     const explorerBaseUrl = "https://explorer.solana.com";
     const networkParam = "?cluster=devnet";

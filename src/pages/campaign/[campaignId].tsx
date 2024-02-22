@@ -44,9 +44,8 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
   const [imageLoading, setImageLoading] = useState(true);
   const [showImage, setShowImage] = useState(false);
   const ipfsProviders = [
-    "https://ipfs.io/ipfs/",
-    "https://gateway.pinata.cloud/ipfs/",
     "https://dweb.link/ipfs/",
+    "https://gateway.pinata.cloud/ipfs/",
   ];
   const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
 

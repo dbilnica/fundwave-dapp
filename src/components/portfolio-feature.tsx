@@ -42,9 +42,8 @@ export const PortfolioDetail: FC<CampaignsTableProps> = ({
   const [walletConnected, setWalletConnected] = useState<boolean | null>(null);
   const [showImage, setShowImage] = useState(false);
   const ipfsProviders = [
-    "https://ipfs.io/ipfs/",
-    "https://gateway.pinata.cloud/ipfs/",
     "https://dweb.link/ipfs/",
+    "https://gateway.pinata.cloud/ipfs/",
   ];
 
 const renderDonorsList = () => {

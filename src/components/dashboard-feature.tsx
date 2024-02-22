@@ -175,9 +175,8 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
       100
     ).toFixed(1);
     const ipfsProviders = [
-      "https://ipfs.io/ipfs/",
-      "https://gateway.pinata.cloud/ipfs/",
       "https://dweb.link/ipfs/",
+      "https://gateway.pinata.cloud/ipfs/",
     ];
     const explorerBaseUrl = "https://explorer.solana.com";
     const networkParam = "?cluster=devnet";
