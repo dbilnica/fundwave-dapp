@@ -1,4 +1,3 @@
-// TODO: SignMessage
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { FC, useState, useRef, ChangeEvent } from "react";
 import {
@@ -145,34 +144,33 @@ export const Crowdfunding: FC = () => {
     e.preventDefault();
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
-      const validTypes = ['image/jpeg', 'image/png'];
+      const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
       if (!validTypes.includes(file.type)) {
-        toast.error("Invalid file type. Only JPG and PNG images are allowed.");
-        return; // Stop further processing if file type is invalid
+        toast.error(
+          "Invalid file type. Only JPG, JPEG, PNG, and WEBP images are allowed."
+        );
+        return;
       }
-  
-      // Process the image file to check for orientation
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          // Check if the image is in landscape orientation
           if (img.width < img.height) {
-            toast.error("Please select an image oriented in width (landscape).");
-            setFile(""); // Reset file input
-            setImagePreview(null); // Reset image preview
+            toast.error(
+              "Please select an image oriented in width (landscape)."
+            );
+            setFile("");
+            setImagePreview(null);
           } else {
             setFile(file);
-            // Proceed with uploading since the image passes both checks
             uploadImageToIPFS(file).then((ipfsCid) => {
               if (ipfsCid) {
-                setImagePreview(reader.result); // Only set preview if image is accepted
+                setImagePreview(reader.result);
               } else {
-                // Handle upload failure
                 toast.error("Failed to upload the image. Please try again.");
-                setFile(""); // Reset file input
-                setImagePreview(null); // Reset image preview
+                setFile("");
+                setImagePreview(null);
               }
             });
           }
@@ -182,7 +180,7 @@ export const Crowdfunding: FC = () => {
       reader.readAsDataURL(file);
     }
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
@@ -296,9 +294,10 @@ export const Crowdfunding: FC = () => {
                 ref={inputFile}
                 onChange={handleChange}
                 style={{ display: "none" }}
-                accept=".jpg, .png, .jpeg"
+                accept=".jpg, .jpeg, .png, .webp"
                 required
               />
+
               <button
                 disabled={uploading}
                 onClick={handleFileButtonClick}
