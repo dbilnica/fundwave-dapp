@@ -14,6 +14,7 @@ import Link from "next/link";
 import { SearchIcon } from "@heroicons/react/outline";
 import SearchAndToggleAdmin from "@/utils/SearchAndToggleAdmin";
 import { shortenAddress } from "@/utils/shortenAddress";
+import { lamportsToSol } from "@/utils/lamportsToSol";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import styles from "@/styles/AdminFeature.module.css";
@@ -286,6 +287,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
       "https://dweb.link/ipfs/",
       "https://gateway.pinata.cloud/ipfs/",
     ];
+    const goalInSol = lamportsToSol(campaign.account.goal).toFixed(2);
     const explorerBaseUrl = "https://explorer.solana.com";
     const networkParam = "?cluster=devnet";
     const ownerPubkey = campaign.account.owner.toString();
@@ -356,9 +358,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
             <div className="mt-auto">
               <div className="flex justify-between items-center text-center">
                 <div className="flex-1">
-                  <p className="text-lg font-bold">
-                    {campaign.account.goal.toString()} SOL
-                  </p>
+                  <p className="text-lg font-bold">{goalInSol} SOL</p>
                   <span className="text-sm">goal</span>
                 </div>
                 <div className="flex-1 border-l border-gray-300">

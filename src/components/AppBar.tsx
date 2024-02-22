@@ -220,7 +220,7 @@ export const AppBar: FC = () => {
               />
               {walletConnected && (
                 <>
-                  {!isAdmin && (
+                  {!isAdmin && !hasPortfolio && (
                     <NavElement
                       label="Create Campaign"
                       href="/create"

@@ -4,6 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { shortenAddress } from "@/utils/shortenAddress";
+import { lamportsToSol } from "@/utils/lamportsToSol";
 import Link from "next/link";
 import Image from "next/image";
 import { SearchIcon } from "@heroicons/react/outline";
@@ -170,8 +171,12 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
     const isCampaignEnded = new Date().getTime() > endTime;
     const [imageLoading, setImageLoading] = useState(true);
     const [showImage, setShowImage] = useState(false);
+    const pledgedInSol = lamportsToSol(
+      Number(campaign.account.pledged)
+    ).toFixed(2);
+    const goalInSol = lamportsToSol(Number(campaign.account.goal)).toFixed(2);
     const progressPercent = (
-      (Number(campaign.account.pledged) / Number(campaign.account.goal)) *
+      (parseFloat(pledgedInSol) / parseFloat(goalInSol)) *
       100
     ).toFixed(1);
     const ipfsProviders = [
@@ -253,9 +258,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
                 <span className="text-sm">achieved</span>
               </div>
               <div className="flex-1 border-l border-r border-gray-300">
-                <p className="text-lg font-bold">
-                  {campaign.account.pledged.toString()} SOL
-                </p>
+                <p className="text-lg font-bold">{pledgedInSol} SOL</p>
                 <span className="text-sm">collected</span>
               </div>
               <div className="flex-1">

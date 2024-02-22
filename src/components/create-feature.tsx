@@ -3,6 +3,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { FC, useState, useRef, ChangeEvent } from 'react';
 import { Program, AnchorProvider, web3, utils, BN } from "@project-serum/anchor"
 import { PublicKey } from '@solana/web3.js';
+import { solToLamports } from "@/utils/solToLamports"; 
 import idl from "@/components/idl/crowdfunding_dapp.json";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -75,7 +76,9 @@ export const Crowdfunding: FC = () => {
       ], program.programId)
 
       const durationInSeconds = new BN(duration * 86400)
-      await program.methods.campaignCreate(name, description, new BN(goal), durationInSeconds, ipfsCid)
+      const goalInLamports = new BN(solToLamports(goal));
+
+      await program.methods.campaignCreate(name, description, goalInLamports, durationInSeconds, ipfsCid)
         .accounts({
           campaign,
           user: anchProvider.wallet.publicKey,
@@ -210,7 +213,7 @@ export const Crowdfunding: FC = () => {
                 <img src={imagePreview}
                   alt="Preview"
                   className="w-full max-w-xs h-auto rounded-lg" 
-                  style={{ maxWidth: '300px', maxHeight: '300px' }} // Setting max width and height
+                  style={{ maxWidth: '300px', maxHeight: '300px' }} 
                 />
               </div>
             )}
