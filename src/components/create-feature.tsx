@@ -18,6 +18,14 @@ const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string);
 const programID = new PublicKey(idl.metadata.address);
 
+const MIN_NAME_LEN = 3;
+const MAX_NAME_LEN = 50;
+const MIN_DESC_LEN = 10;
+const MAX_DESC_LEN = 500;
+//const MAX_GOAL_SOL = 43478000; // Assuming MAX_GOAL in lamports is 43478000000000, then in SOL it would be 43478000
+const MAX_DURATION_DAYS = 365; // Duration constraint in days
+const LAMPORTS_PER_SOL = 1000000000;
+
 export const Crowdfunding: FC = () => {
   const ourWallet = useWallet();
   const { connection } = useConnection();
@@ -32,6 +40,7 @@ export const Crowdfunding: FC = () => {
   const [imagePreview, setImagePreview] = useState(null);
 
   const inputFile = useRef(null);
+  const inputBgColor = `rgb(45, 46, 49)`;
 
   const clearForm = () => {
     setName("");
@@ -213,7 +222,8 @@ export const Crowdfunding: FC = () => {
               id="name"
               type="text"
               placeholder="Name of the campaign"
-              className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200 text-black "
+              className="input input-bordered input-primary w-full"
+              style={{ backgroundColor: inputBgColor }}
               value={name}
               onChange={onNameChange}
               required
@@ -229,7 +239,8 @@ export const Crowdfunding: FC = () => {
             <textarea
               id="description"
               placeholder="Description of the campaign"
-              className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200 text-black"
+              className="input input-bordered input-primary w-full"
+              style={{ backgroundColor: inputBgColor }}
               value={description}
               onChange={onDescriptionChange}
               required
@@ -248,7 +259,8 @@ export const Crowdfunding: FC = () => {
                 type="number"
                 min="1"
                 placeholder="Goal"
-                className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200 text-black"
+                className="input input-bordered input-primary w-full"
+                style={{ backgroundColor: inputBgColor }}
                 value={goal}
                 onChange={onGoalChange}
                 required
@@ -267,7 +279,8 @@ export const Crowdfunding: FC = () => {
                   type="number"
                   min="1"
                   placeholder="Duration in days"
-                  className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring focus:border-blue-300 transition duration-200 text-black"
+                  className="input input-bordered input-primary w-full"
+                  style={{ backgroundColor: inputBgColor }}
                   value={duration}
                   onChange={onDurationChange}
                   required
