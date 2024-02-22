@@ -12,6 +12,7 @@ import { PublicKey } from "@solana/web3.js";
 import { solToLamports } from "@/utils/solToLamports";
 import idl from "@/components/idl/crowdfunding_dapp.json";
 import { toast, ToastContainer } from "react-toastify";
+import styles from "@/styles/CreateFeature.module.css";
 import "react-toastify/dist/ReactToastify.css";
 
 const idl_string = JSON.stringify(idl);
@@ -20,7 +21,6 @@ const programID = new PublicKey(idl.metadata.address);
 
 export const Crowdfunding: FC = () => {
   const ourWallet = useWallet();
-  //fetch current connection all of the project
   const { connection } = useConnection();
 
   const [name, setName] = useState("");
@@ -145,16 +145,44 @@ export const Crowdfunding: FC = () => {
     e.preventDefault();
     const file = e.target.files[0];
     if (file) {
-      setFile(file);
-      uploadImageToIPFS(file);
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png'];
+      if (!validTypes.includes(file.type)) {
+        toast.error("Invalid file type. Only JPG and PNG images are allowed.");
+        return; // Stop further processing if file type is invalid
+      }
+  
+      // Process the image file to check for orientation
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          // Check if the image is in landscape orientation
+          if (img.width < img.height) {
+            toast.error("Please select an image oriented in width (landscape).");
+            setFile(""); // Reset file input
+            setImagePreview(null); // Reset image preview
+          } else {
+            setFile(file);
+            // Proceed with uploading since the image passes both checks
+            uploadImageToIPFS(file).then((ipfsCid) => {
+              if (ipfsCid) {
+                setImagePreview(reader.result); // Only set preview if image is accepted
+              } else {
+                // Handle upload failure
+                toast.error("Failed to upload the image. Please try again.");
+                setFile(""); // Reset file input
+                setImagePreview(null); // Reset image preview
+              }
+            });
+          }
+        };
+        img.src = e.target.result.toString();
       };
       reader.readAsDataURL(file);
     }
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
@@ -172,8 +200,7 @@ export const Crowdfunding: FC = () => {
     await createCampaign(ipfsCid);
   };
   return (
-    <div className="campaigns-create p-5">
-      <div className="font-bold text-xl mb-4">Create Campaign</div>
+    <div className="campaigns-create px-5 py-5 max-w-4xl mx-auto">
       <div className="overflow-hidden rounded-lg shadow-lg">
         <ToastContainer position="top-center" />
         <form id="create" onSubmit={handleSubmit} className="bg-base-100 p-6">
@@ -275,7 +302,7 @@ export const Crowdfunding: FC = () => {
               <button
                 disabled={uploading}
                 onClick={handleFileButtonClick}
-                className="w-[150px] bg-secondary text-light rounded-3xl py-2 px-4 hover:bg-accent hover:text-light transition-all duration-300 ease-in-out"
+                className={`btn text-xl font-semibold ml-2`}
               >
                 {uploading
                   ? "Uploading..."
@@ -288,7 +315,7 @@ export const Crowdfunding: FC = () => {
           <div className="flex justify-center mt-6">
             <button
               type="submit"
-              className="btn bg-gradient-to-br from-indigo-500 to-fuchsia-500 border-2 border-[#5252529f] text-white px-6 py-3 rounded-md shadow-sm hover:bg-gradient-to-bl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-200 text-black"
+              className={`btn ${styles.btnCreate} btn-wide text-xl font-semibold ml-2`}
             >
               Create Campaign
             </button>
