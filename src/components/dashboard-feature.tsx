@@ -269,7 +269,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
                 href={explorerUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-bold text-indigo-800 hover:text-indigo-900 visited:text-purple-800"
+                className="font-bold text-indigo-700 hover:text-indigo-900 visited:text-purple-700"
               >
                 {shortenedOwnerPubkey}
               </a>
