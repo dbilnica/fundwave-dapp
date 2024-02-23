@@ -185,23 +185,25 @@ export const Crowdfunding: FC = () => {
     if (file) {
       const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
       if (!validTypes.includes(file.type)) {
-        toast.error(
-          "Invalid file type. Only JPG, JPEG, PNG, and WEBP images are allowed."
-        );
+        toast.error("Invalid file type. Only JPG, JPEG, PNG, and WEBP images are allowed.");
         return;
       }
-
+  
       const reader = new FileReader();
       reader.onload = async (e) => {
         const img = new Image();
         img.onload = async () => {
           if (img.width < img.height) {
-            toast.error(
-              "Please select an image oriented in width (landscape)."
-            );
+            toast.error("Please select an image oriented in width (landscape).");
             setFile("");
             setImagePreview(null);
-          } else {
+          } 
+          else if (img.width < 800 || img.height < 600) {
+            toast.error("Image resolution is too low. Minimum resolution is 800x600.");
+            setFile("");
+            setImagePreview(null);
+          }
+          else {
             setFile(file);
             const ipfsCid = await uploadImageToIPFS(file);
             if (ipfsCid) {
@@ -219,7 +221,7 @@ export const Crowdfunding: FC = () => {
       reader.readAsDataURL(file);
     }
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     const defaultCid = "QmPwZffFocJEQdMiVNmeBaVJqfRLez6BX4SpJYY1366p33";
