@@ -5,6 +5,11 @@ import { fileTypeFromBuffer } from "file-type";
 const pinataSDK = require("@pinata/sdk");
 const pinata = new pinataSDK({ pinataJWTKey: process.env.PINATA_JWT });
 
+interface ParsedFormData {
+  fields: formidable.Fields;
+  files: formidable.Files;
+}
+
 export const config = {
   api: {
     bodyParser: false,
@@ -36,24 +41,27 @@ const saveFile = async (file: formidable.File) => {
   }
 };
 
+const parseForm = (req): Promise<ParsedFormData> => {
+  return new Promise((resolve, reject) => {
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+      if (err) reject(err);
+      else resolve({ fields, files });
+    });
+  });
+};
+
 export default async function handler(req, res) {
   if (req.method === "POST") {
-    const form = new formidable.IncomingForm();
-    form.parse(req, async (err, fields, files) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send("Upload Error");
-      }
-      try {
-        const response = await saveFile(files.file);
-        const { IpfsHash } = response;
-
-        return res.status(200).send(IpfsHash);
-      } catch (error) {
-        console.error(error);
-        return res.status(400).send(error.message);
-      }
-    });
+    try {
+      const { fields, files } = await parseForm(req);
+      const response = await saveFile(files.file);
+      const { IpfsHash } = response;
+      return res.status(200).send(IpfsHash);
+    } catch (error) {
+      console.error(error);
+      return res.status(400).send(error.message);
+    }
   } else if (req.method === "GET") {
     try {
       const response = await pinata.pinList({}, { pageLimit: 1 });

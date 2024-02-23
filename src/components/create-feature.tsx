@@ -22,9 +22,8 @@ const MIN_NAME_LEN = 3;
 const MAX_NAME_LEN = 50;
 const MIN_DESC_LEN = 10;
 const MAX_DESC_LEN = 500;
-//const MAX_GOAL_SOL = 43478000; // Assuming MAX_GOAL in lamports is 43478000000000, then in SOL it would be 43478000
-const MAX_DURATION_DAYS = 365; // Duration constraint in days
-const LAMPORTS_PER_SOL = 1000000000;
+const MAX_GOAL_SOL = 43478;
+const MAX_DURATION_DAYS = 365;
 
 export const Crowdfunding: FC = () => {
   const ourWallet = useWallet();
@@ -52,9 +51,7 @@ export const Crowdfunding: FC = () => {
     setImagePreview("");
   };
 
-  //interacting with anchor program
   const getProvider = async (): Promise<AnchorProvider> => {
-    //actual connection to the cluster, where is snart contract deployed
     const provider = new AnchorProvider(
       connection,
       ourWallet,
@@ -69,18 +66,51 @@ export const Crowdfunding: FC = () => {
   const onDescriptionChange = (e: ChangeEvent<any>) => {
     setDescription(e.target.value);
   };
+
   const onGoalChange = (e: ChangeEvent<any>) => {
-    setGoal(e.target.value);
+    const value = parseFloat(e.target.value);
+    if (isNaN(value)) {
+      toast.error("Goal must be a number.");
+    } else if (value > MAX_GOAL_SOL) {
+      setGoal(MAX_GOAL_SOL);
+      toast.error(`Goal must be less than or equal to ${MAX_GOAL_SOL} SOL.`);
+    } else {
+      setGoal(value);
+    }
   };
+
   const onDurationChange = (e: ChangeEvent<any>) => {
-    setDuration(e.target.value);
+    const value = parseInt(e.target.value, 10);
+    if (isNaN(value)) {
+      toast.error("Duration must be a number.");
+    } else if (value > MAX_DURATION_DAYS) {
+      setDuration(MAX_DURATION_DAYS);
+      toast.error(
+        `Duration must be less than or equal to ${MAX_DURATION_DAYS} days.`
+      );
+    } else {
+      setDuration(value);
+    }
   };
 
   const createCampaign = async (ipfsCid) => {
     try {
-      // obtaining provider
+      if (name.length < MIN_NAME_LEN || name.length > MAX_NAME_LEN) {
+        toast.error(
+          `Name must be between ${MIN_NAME_LEN} and ${MAX_NAME_LEN} characters.`
+        );
+        return;
+      }
+      if (
+        description.length < MIN_DESC_LEN ||
+        description.length > MAX_DESC_LEN
+      ) {
+        toast.error(
+          `Description must be between ${MIN_DESC_LEN} and ${MAX_DESC_LEN} characters.`
+        );
+        return;
+      }
       const anchProvider = await getProvider();
-      // we need to add programId, bump is added automatically
       const program = new Program(idl_object, programID, anchProvider);
 
       const [campaign] = await PublicKey.findProgramAddressSync(
@@ -149,7 +179,7 @@ export const Crowdfunding: FC = () => {
     inputFile.current.click();
   };
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     e.preventDefault();
     const file = e.target.files[0];
     if (file) {
@@ -162,9 +192,9 @@ export const Crowdfunding: FC = () => {
       }
 
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const img = new Image();
-        img.onload = () => {
+        img.onload = async () => {
           if (img.width < img.height) {
             toast.error(
               "Please select an image oriented in width (landscape)."
@@ -173,15 +203,15 @@ export const Crowdfunding: FC = () => {
             setImagePreview(null);
           } else {
             setFile(file);
-            uploadImageToIPFS(file).then((ipfsCid) => {
-              if (ipfsCid) {
-                setImagePreview(reader.result);
-              } else {
-                toast.error("Failed to upload the image. Please try again.");
-                setFile("");
-                setImagePreview(null);
-              }
-            });
+            const ipfsCid = await uploadImageToIPFS(file);
+            if (ipfsCid) {
+              setCid(ipfsCid);
+              setImagePreview(reader.result);
+            } else {
+              toast.error("Failed to upload the image. Please try again.");
+              setFile("");
+              setImagePreview(null);
+            }
           }
         };
         img.src = e.target.result.toString();
@@ -192,20 +222,15 @@ export const Crowdfunding: FC = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) {
-      toast.error("Please select an image for the campaign.");
-      return;
+    const defaultCid = "QmPwZffFocJEQdMiVNmeBaVJqfRLez6BX4SpJYY1366p33";
+    if (!cid) {
+      toast.info("Creating campaign without an uploaded image, using default image instead.");
+      await createCampaign(defaultCid);
+    } else {
+      await createCampaign(cid);
     }
-    setUploading(true);
-    const ipfsCid = await uploadImageToIPFS(file);
-    setUploading(false);
-
-    if (!ipfsCid) {
-      toast.error("Failed to upload the image. Please try again.");
-      return;
-    }
-    await createCampaign(ipfsCid);
   };
+
   return (
     <div className="campaigns-create px-5 py-5 max-w-4xl mx-auto">
       <div className="overflow-hidden rounded-lg shadow-lg">
@@ -226,6 +251,7 @@ export const Crowdfunding: FC = () => {
               style={{ backgroundColor: inputBgColor }}
               value={name}
               onChange={onNameChange}
+              maxLength={MAX_NAME_LEN}
               required
             />
           </div>
@@ -243,6 +269,7 @@ export const Crowdfunding: FC = () => {
               style={{ backgroundColor: inputBgColor }}
               value={description}
               onChange={onDescriptionChange}
+              maxLength={MAX_DESC_LEN}
               required
             />
           </div>
@@ -257,8 +284,10 @@ export const Crowdfunding: FC = () => {
               <input
                 id="goal"
                 type="number"
-                min="1"
-                placeholder="Goal"
+                min="0.000000001"
+                max={MAX_GOAL_SOL}
+                step="0.000000001"
+                placeholder="Goal in SOL"
                 className="input input-bordered input-primary w-full"
                 style={{ backgroundColor: inputBgColor }}
                 value={goal}
@@ -278,6 +307,7 @@ export const Crowdfunding: FC = () => {
                   id="duration"
                   type="number"
                   min="1"
+                  max={MAX_DURATION_DAYS}
                   placeholder="Duration in days"
                   className="input input-bordered input-primary w-full"
                   style={{ backgroundColor: inputBgColor }}
@@ -308,7 +338,7 @@ export const Crowdfunding: FC = () => {
                 onChange={handleChange}
                 style={{ display: "none" }}
                 accept=".jpg, .jpeg, .png, .webp"
-                required
+              
               />
 
               <button
