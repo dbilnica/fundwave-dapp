@@ -1,4 +1,3 @@
-/* Desktop and larger screens */
 .btnCreate {
   background-color: #2a0a5e;
   color: #fff;
@@ -20,7 +19,7 @@
 
 .inputContainer {
   margin: auto;
-  max-width: 50%;
+  max-width: 60%;
 }
 
 .inputGoal {
@@ -37,22 +36,36 @@
   padding: 5px; 
 }
 
-/* Mobile screens */
-@media (max-width: 768px) { /* Adjust the max-width as needed for your breakpoint */
+@media (max-width: 768px) {
   .centerContainerTwo {
-    flex-direction: column; /* Stack flex children vertically on mobile */
+    flex-direction: column;
   }
 
   .inputGoal,
   .inputDuration {
-    max-width: 100%; /* Full width for mobile */
-    margin-right: 0; /* Remove the right margin on mobile */
-    margin-left: 0; /* Remove the left margin on mobile */
-    margin-top: 10px; /* Maintain vertical spacing on mobile */
+    max-width: 100%;
+    margin-right: 0;
+    margin-left: 0; 
+    margin-top: 10px;
     margin-bottom: 10px;
   }
 
   .inputContainer {
-    max-width: 100%; /* Full width for mobile */
+    max-width: 100%;
   }
+}
+
+.roundedCard {
+  border-radius: 1.2rem;
+}
+
+.customTextarea {
+  max-width: 95%;
+  background-color: rgb(45, 46, 49);
+  border-radius: 0.5rem; 
+}
+
+.inputDescription {
+  padding: 10px;
+  padding-left: 14px;
 }

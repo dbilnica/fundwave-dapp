@@ -22,7 +22,7 @@ const programID = new PublicKey(idl.metadata.address);
 const MIN_NAME_LEN = 3;
 const MAX_NAME_LEN = 50;
 const MIN_DESC_LEN = 10;
-const MAX_DESC_LEN = 500;
+const MAX_DESC_LEN = 5000;
 const MAX_GOAL_SOL = 43478;
 const MAX_DURATION_DAYS = 365;
 
@@ -241,15 +241,15 @@ export const Crowdfunding: FC = () => {
   };
 
   return (
-    <div className="campaigns-create px-5 py-5 max-w-4xl mx-auto">
-      <div className="overflow-hidden rounded-lg shadow-lg">
+    <div className="campaigns-create px-5 py-5 max-w-3xl mx-auto">
+      <div className={`${styles.roundedCard} overflow-hidden shadow-lg`}>
         <ToastContainer position="top-center" />
         <form id="create" onSubmit={handleSubmit} className="bg-base-100 p-6">
           <div className={styles.centerContainer}>
             <div className={styles.inputContainer}>
               <label
                 htmlFor="name"
-                className="block text-sm font-bold mb-2 uppercase tracking-wider text-center"
+                className="block text-lg font-bold mb-2 uppercase tracking-wider text-center"
               >
                 Name
               </label>
@@ -270,33 +270,32 @@ export const Crowdfunding: FC = () => {
           <div className="mb-2">
             <label
               htmlFor="description"
-              className="block text-sm font-bold mb-2 uppercase tracking-wider"
+              className="block text-lg font-bold mb-2 uppercase tracking-wider"
             >
               Description
             </label>
             <textarea
               id="description"
               placeholder="Description of the campaign"
-              className="input input-bordered input-primary w-full"
-              style={{ backgroundColor: inputBgColor }}
+              className={`input-bordered input-primary w-full ${styles.customTextarea} ${styles.inputDescription}`}
               value={description}
               onChange={onDescriptionChange}
               maxLength={MAX_DESC_LEN}
               required
+              rows={5}
             />
           </div>
           <div className={styles.centerDurationGoal}>
             <div className={styles.inputGoal}>
               <label
                 htmlFor="goal"
-                className="block text-sm font-bold mb-2 uppercase tracking-wider"
+                className="block text-lg font-bold mb-2 uppercase tracking-wider"
               >
                 Goal
               </label>
               <input
                 id="goal"
                 type="number"
-                
                 max={MAX_GOAL_SOL}
                 step="1"
                 placeholder="Goal in SOL"
@@ -317,7 +316,7 @@ export const Crowdfunding: FC = () => {
             <div className={styles.inputDuration}>
               <label
                 htmlFor="duration"
-                className="block text-sm font-bold mb-2 uppercase tracking-wider"
+                className="block text-lg font-bold mb-2 uppercase tracking-wider"
               >
                 Duration
               </label>
@@ -349,7 +348,7 @@ export const Crowdfunding: FC = () => {
                   src={imagePreview}
                   alt="Preview"
                   className="w-full max-w-xs h-auto rounded-lg"
-                  style={{ maxWidth: "300px", maxHeight: "300px" }}
+                  style={{ maxWidth: "400px", maxHeight: "400px", borderRadius: "10px" }}
                 />
               </div>
             )}
@@ -366,7 +365,7 @@ export const Crowdfunding: FC = () => {
               <button
                 disabled={uploading}
                 onClick={handleFileButtonClick}
-                className={`btn text-xl font-semibold ml-2`}
+                className={`btn text-lg font-semibold ml-2`}
               >
                 {uploading
                   ? "Uploading..."
@@ -376,10 +375,10 @@ export const Crowdfunding: FC = () => {
               </button>
             </div>
           </div>
-          <div className="flex justify-center mt-6">
+          <div className="flex justify-center mt-6 mb-3">
             <button
               type="submit"
-              className={`btn ${styles.btnCreate} btn-wide text-xl font-semibold ml-2`}
+              className={`btn ${styles.btnCreate} btn-wide text-xl font-bold ml-2`}
             >
               Create Campaign
             </button>
