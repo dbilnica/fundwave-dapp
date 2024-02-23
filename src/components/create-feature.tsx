@@ -13,6 +13,7 @@ import idl from "@/components/idl/crowdfunding_dapp.json";
 import { toast, ToastContainer } from "react-toastify";
 import styles from "@/styles/CreateFeature.module.css";
 import "react-toastify/dist/ReactToastify.css";
+/* eslint-disable @next/next/no-img-element */
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string);
@@ -185,25 +186,29 @@ export const Crowdfunding: FC = () => {
     if (file) {
       const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
       if (!validTypes.includes(file.type)) {
-        toast.error("Invalid file type. Only JPG, JPEG, PNG, and WEBP images are allowed.");
+        toast.error(
+          "Invalid file type. Only JPG, JPEG, PNG, and WEBP images are allowed."
+        );
         return;
       }
-  
+
       const reader = new FileReader();
       reader.onload = async (e) => {
         const img = new Image();
         img.onload = async () => {
           if (img.width < img.height) {
-            toast.error("Please select an image oriented in width (landscape).");
+            toast.error(
+              "Please select an image oriented in width (landscape)."
+            );
             setFile("");
             setImagePreview(null);
-          } 
-          else if (img.width < 800 || img.height < 600) {
-            toast.error("Image resolution is too low. Minimum resolution is 800x600.");
+          } else if (img.width < 800 || img.height < 600) {
+            toast.error(
+              "Image resolution is too low. Minimum resolution is 800x600."
+            );
             setFile("");
             setImagePreview(null);
-          }
-          else {
+          } else {
             setFile(file);
             const ipfsCid = await uploadImageToIPFS(file);
             if (ipfsCid) {
@@ -221,12 +226,14 @@ export const Crowdfunding: FC = () => {
       reader.readAsDataURL(file);
     }
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const defaultCid = "QmPwZffFocJEQdMiVNmeBaVJqfRLez6BX4SpJYY1366p33";
     if (!cid) {
-      toast.info("Creating campaign without an uploaded image, using default image instead.");
+      toast.info(
+        "Creating campaign without an uploaded image, using default image instead."
+      );
       await createCampaign(defaultCid);
     } else {
       await createCampaign(cid);
@@ -238,26 +245,29 @@ export const Crowdfunding: FC = () => {
       <div className="overflow-hidden rounded-lg shadow-lg">
         <ToastContainer position="top-center" />
         <form id="create" onSubmit={handleSubmit} className="bg-base-100 p-6">
-          <div className="mb-6">
-            <label
-              htmlFor="name"
-              className="block text-sm font-bold mb-2 uppercase tracking-wider"
-            >
-              Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              placeholder="Name of the campaign"
-              className="input input-bordered input-primary w-full"
-              style={{ backgroundColor: inputBgColor }}
-              value={name}
-              onChange={onNameChange}
-              maxLength={MAX_NAME_LEN}
-              required
-            />
+          <div className={styles.centerContainer}>
+            <div className={styles.inputContainer}>
+              <label
+                htmlFor="name"
+                className="block text-sm font-bold mb-2 uppercase tracking-wider text-center"
+              >
+                Name
+              </label>
+              <input
+                id="name"
+                type="text"
+                placeholder="Name of the campaign"
+                className="input input-bordered input-primary w-full"
+                style={{ backgroundColor: inputBgColor }}
+                value={name}
+                onChange={onNameChange}
+                maxLength={MAX_NAME_LEN}
+                required
+              />
+            </div>
           </div>
-          <div className="mb-6">
+
+          <div className="mb-2">
             <label
               htmlFor="description"
               className="block text-sm font-bold mb-2 uppercase tracking-wider"
@@ -275,8 +285,8 @@ export const Crowdfunding: FC = () => {
               required
             />
           </div>
-          <div className="flex justify-between mb-6">
-            <div className="flex-1 mr-2">
+          <div className={styles.centerDurationGoal}>
+            <div className={styles.inputGoal}>
               <label
                 htmlFor="goal"
                 className="block text-sm font-bold mb-2 uppercase tracking-wider"
@@ -286,41 +296,52 @@ export const Crowdfunding: FC = () => {
               <input
                 id="goal"
                 type="number"
-                min="0.000000001"
+                
                 max={MAX_GOAL_SOL}
-                step="0.000000001"
+                step="1"
                 placeholder="Goal in SOL"
                 className="input input-bordered input-primary w-full"
-                style={{ backgroundColor: inputBgColor }}
+                style={{ backgroundColor: inputBgColor, height: "50px" }}
                 value={goal}
                 onChange={onGoalChange}
                 required
               />
-            </div>
-            <div className="flex-1 ml-2 flex items-center">
-              <div className="flex-1">
-                <label
-                  htmlFor="duration"
-                  className="block text-sm font-bold mb-2 uppercase tracking-wider"
-                >
-                  Duration
-                </label>
-                <input
-                  id="duration"
-                  type="number"
-                  min="1"
-                  max={MAX_DURATION_DAYS}
-                  placeholder="Duration in days"
-                  className="input input-bordered input-primary w-full"
-                  style={{ backgroundColor: inputBgColor }}
-                  value={duration}
-                  onChange={onDurationChange}
-                  required
-                />
+              <div
+                className="text-left mt-1"
+                style={{ color: "rgba(255, 255, 255, 0.7)" }}
+              >
+                SOL
               </div>
-              <span className="text-sm ml-1">days</span>
+            </div>
+
+            <div className={styles.inputDuration}>
+              <label
+                htmlFor="duration"
+                className="block text-sm font-bold mb-2 uppercase tracking-wider"
+              >
+                Duration
+              </label>
+              <input
+                id="duration"
+                type="number"
+                min="1"
+                max={MAX_DURATION_DAYS}
+                placeholder="Duration in days"
+                className="input input-bordered input-primary w-full"
+                style={{ backgroundColor: inputBgColor, height: "50px" }}
+                value={duration}
+                onChange={onDurationChange}
+                required
+              />
+              <div
+                className="text-right mt-1"
+                style={{ color: "rgba(255, 255, 255, 0.7)" }}
+              >
+                Days
+              </div>
             </div>
           </div>
+
           <div>
             {imagePreview && (
               <div className="image-preview-container mb-4 flex justify-center items-center">
@@ -340,7 +361,6 @@ export const Crowdfunding: FC = () => {
                 onChange={handleChange}
                 style={{ display: "none" }}
                 accept=".jpg, .jpeg, .png, .webp"
-              
               />
 
               <button
