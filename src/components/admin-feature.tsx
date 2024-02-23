@@ -121,9 +121,10 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
       console.log(
         `Campaign "${campaignToReview.account.name}" has been successfully reviewed!`
       );
-      console.log("Campaign has been successfully reviewed " + publicKey);
+      await getAllCampaigns();
     } catch (error) {
-      console.log("Error while reviewing");
+      toast.error("Error while reviewing " + publicKey);
+      console.log("Error while reviewing: ", error);
     }
   };
 
@@ -155,9 +156,10 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
       console.log(
         `Campaign "${campaignToCancel.account.name}" has been successfully canceled!`
       );
+      await getAllCampaigns();
     } catch (error) {
-      toast.error("Campaign has been successfully canceled " + publicKey);
-      console.log("Error while cancelling");
+      toast.error("Error while cancelling " + publicKey);
+      console.log("Error while cancelling: ", error);
     }
   };
   const initAdmin = async () => {
@@ -258,7 +260,8 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
       } else if (isCanceledToggled) {
         return matchesSearchQuery && isCanceled;
       }
-      return matchesSearchQuery;
+      return !isActive && !isCanceled && matchesSearchQuery;
+
     });
   }, [campaigns, isReviewedToggled, isCanceledToggled, searchQuery]);
 
