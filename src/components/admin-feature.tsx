@@ -187,6 +187,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
         .rpc();
       toast.success("Admin initialized successfully!");
       console.log("Admin initialized successfully");
+      await getAdminPubkey();
     } catch (error) {
       toast.error("Error while initializing admin!");
       console.error("Error while initializing admin: ", error);
