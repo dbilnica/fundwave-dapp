@@ -1,23 +1,27 @@
 .campaignImage {
-    max-width: 100%;
-    height: auto;
+  max-width: 100%;
+  height: auto;
+}
+.btnSupport {
+  background-color: #2a0a5e;
+  color: #fff;
+  border: none;
+}
+
+@media (max-width: 600px) {
+  .cardTitle {
+    font-size: 1.5rem;
   }
-  
-  @media (max-width: 600px) {
-    .cardTitle {
-      font-size: 1.5rem; 
-    }
-    
-    .cardBody {
-      padding: 1rem; 
-    }
-    
-    .btn {
-      padding: 0.5rem 1rem; 
-    }
-  
-    .campaignsView {
-      padding: 1rem;
-    }
+
+  .cardBody {
+    padding: 1rem;
   }
-  
+
+  .btn {
+    padding: 0.5rem 1rem;
+  }
+
+  .campaignsView {
+    padding: 1rem;
+  }
+}

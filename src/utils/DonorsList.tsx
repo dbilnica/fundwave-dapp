@@ -1,4 +1,5 @@
 import React from 'react';
+import { lamportsToSol } from "@/utils/lamportsToSol";
 import styles from "@/styles/DonorsList.module.css";
 
 const DonorLink = ({ publicKey }) => {
@@ -25,7 +26,7 @@ const DonorsList = ({ pledgers }) => {
       <ul className={styles.donorsContainer}>
         {pledgers.map((pledger, index) => (
           <li key={index} className={styles.donorItem}>
-            Donor Public Key: <DonorLink publicKey={pledger.pledgerPubkey} />, Amount: {pledger.pledgedAmount.toString()} SOL
+            Donor Public Key: <DonorLink publicKey={pledger.pledgerPubkey} />, Amount: {lamportsToSol(Number(pledger.pledgedAmount)).toString()} SOL
           </li>
         ))}
       </ul>

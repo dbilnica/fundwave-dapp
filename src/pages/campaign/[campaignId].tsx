@@ -3,22 +3,15 @@ import Head from "next/head";
 import { FC, useEffect, useState } from "react";
 import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import {
-  BN,
-  Program,
-  ProgramAccount,
-  AnchorProvider,
-  web3,
-  utils,
-  getProvider,
-} from "@project-serum/anchor";
+import { BN, Program, AnchorProvider, web3 } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import { toast, ToastContainer } from "react-toastify";
+import { solToLamports } from "@/utils/solToLamports";
+import { lamportsToSol } from "@/utils/lamportsToSol";
 import Image from "next/image";
 import "react-toastify/dist/ReactToastify.css";
 import DonorsList from "utils/DonorsList";
-import styles from '@/styles/CampaignDetail.module.css';
-
+import styles from "@/styles/CampaignDetail.module.css";
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string);
@@ -43,11 +36,20 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
   const [isSupporting, setIsSupporting] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [showImage, setShowImage] = useState(false);
+  const [amount, setAmount] = useState("");
   const ipfsProviders = [
     "https://dweb.link/ipfs/",
     "https://gateway.pinata.cloud/ipfs/",
   ];
   const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
+  const userHasDonated = () => {
+    return campaign?.pledgers?.some(
+      (pledger) =>
+        pledger.pledgerPubkey.toString() === ourWallet.publicKey?.toString()
+    );
+  };
+
+  const inputBgColor = `rgb(45, 46, 49)`;
 
   const getCampaign = async () => {
     if (!campaignId) {
@@ -103,11 +105,10 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
     try {
       const anchProvider = await getProvider();
       const program = new Program(idl_object, programID, anchProvider);
-      console.log("Test");
-      console.log(campaignPublicKey);
+      const amountLamports = solToLamports(amount);
 
       await program.methods
-        .campaignSupport(new BN(amount))
+        .campaignSupport(new BN(amountLamports))
         .accounts({
           campaign: campaignPublicKey,
           user: anchProvider.wallet.publicKey,
@@ -121,6 +122,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
         "Campaign has been successfully supported " + campaignPublicKey
       );
       setTimeout(getCampaign, 2000);
+      setAmount("");
     } catch (error) {
       toast.error("Error while supporting!", error);
       console.log("Error while supporting", error);
@@ -144,24 +146,6 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
       setTimeout(getCampaign, 2000);
     } catch (error) {
       console.log("Error while cancelling support");
-    }
-  };
-
-  const withdrawCampaign = async (publicKey) => {
-    try {
-      const anchProvider = await getProvider();
-      const program = new Program(idl_object, programID, anchProvider);
-
-      await program.methods
-        .campaignWithdraw()
-        .accounts({
-          campaign: publicKey,
-          user: anchProvider.wallet.publicKey,
-        })
-        .rpc();
-      console.log("Campaign has been successfully withdrawed " + publicKey);
-    } catch (error) {
-      console.log("Error while withdrawing");
     }
   };
 
@@ -292,7 +276,9 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
             />
           </figure>
           <div className="card-body">
-          <h2 className={`${styles.cardTitle} text-4xl font-bold`}>{campaign.name}</h2>
+            <h2 className={`${styles.cardTitle} text-4xl font-bold`}>
+              {campaign.name}
+            </h2>
             <p className="mb-4">{campaign.description}</p>
 
             <ProgressBar
@@ -303,7 +289,8 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
               <div>
                 <p className="text-lg font-bold">{progressPercent}% achieved</p>
                 <p className="text-lg">
-                  {campaign.pledged?.toString()} SOL collected
+                  {lamportsToSol(Number(campaign.pledged)).toString()} SOL
+                  collected
                 </p>
               </div>
               <div>
@@ -312,25 +299,32 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
             </div>
             {campaign && <DonorsList pledgers={campaign.pledgers} />}
 
-            <div className="card-actions justify-end">
+
+            {userHasDonated() && (
+                <button
+                  onClick={() => cancelSupport(campaignPublicKey)}
+                  className="btn btn-wide text-xl font-semibold ml-2"
+                  style={{ width: "100%" }}
+                >
+                  Cancel Support
+                </button>
+              )}
+            <div className="card-actions justify-between">
+
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                style={{ backgroundColor: inputBgColor }}
+                placeholder="Amount in SOL"
+                className="input input-bordered input-primary w-full max-w-xs"
+              />
               <button
-                onClick={() => supportCampaign(100)}
-                className={`${styles.btn} btn btn-primary`}
-                disabled={isSupporting}
+                onClick={() => supportCampaign(parseFloat(amount))}
+                className={`btn ${styles.btnSupport} btn-wide text-xl font-bold ml-2`}
+                disabled={isSupporting || parseFloat(amount) <= 0}
               >
-                {isSupporting ? "Supporting..." : "Support with 100 SOL"}
-              </button>
-              <button
-                onClick={() => cancelSupport(campaignPublicKey)}
-                className="btn btn-error"
-              >
-                Cancel Support
-              </button>
-              <button
-                onClick={() => withdrawCampaign(campaignPublicKey)}
-                className="btn btn-warning"
-              >
-                Withdraw Campaign
+                {isSupporting ? "Supporting..." : `Support with ${amount} SOL`}
               </button>
             </div>
           </div>
