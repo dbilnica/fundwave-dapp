@@ -1,22 +1,44 @@
 .donorsContainer {
-    padding: 0;
-    list-style: none;
-    margin: 0;
-  }
-  
+  padding: 0;
+  list-style: none;
+  margin: 0;
+}
+.donorsCard {
+  position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 1.1rem;
+  border: 1px solid #f5f5f5;
+  max-width: 70%;
+  margin: 1.5rem auto; /* Add vertical margin for better spacing */
+  padding: 1rem; /* Add padding inside the card */
+}
+
+.donorItem {
+  padding: 8px;
+  margin-bottom: 8px;
+  word-break: break-word;
+  border-radius: 4px;
+  overflow: hidden;
+  text-align: center;
+
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: white; /* Or any color that is visible on the card's background */
+  z-index: 10;
+}
+
+
+@media (max-width: 600px) {
   .donorItem {
-    border: 1px solid #ddd;
-    padding: 8px;
-    margin-bottom: 8px; 
-    word-break: break-word; 
-    border-radius: 4px;
-    overflow: hidden;
+    font-size: 0.8rem;
+    padding: 4px;
+    margin-bottom: 4px;
   }
-  
-  @media (max-width: 600px) {
-    .donorItem {
-      font-size: 0.8rem;
-      padding: 4px;
-      margin-bottom: 4px;
-    }
-  }
+}

@@ -8,7 +8,35 @@
   border: none;
 }
 
+.buttonContainer {
+  display: flex;
+  justify-content: center; /* This will center the button */
+  padding: 1rem 0; /* Add padding at the top and bottom */
+}
+
+.btnSupporters {
+  margin: 0.5rem; /* Add some margin around the button */
+  text-align: center; /* Ensure the text is centered in the button */
+  width: auto; /* Allow the button to size according to its content */
+  min-width: 150px; 
+  background-color: #2a0a5e;
+  color: #fff;
+  transition: background-color 0.3s; /* Smooth background color transition on hover/focus */
+}
+
+.btn:hover,
+.btn:focus {
+  background-color: #3a1d6e; /* A slightly lighter purple to indicate interactivity */
+}
+
+.btnCancel {
+  max-width: 60%;
+}
+
 @media (max-width: 600px) {
+  .buttonContainer {
+    padding: 1rem 0;
+  }
   .cardTitle {
     font-size: 1.5rem;
   }
@@ -18,7 +46,9 @@
   }
 
   .btn {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1rem; /* Smaller padding on small screens */
+    margin: 0.25rem; /* Smaller margin on small screens */
+    min-width: 120px; /* Smaller minimum width on small screens */
   }
 
   .campaignsView {

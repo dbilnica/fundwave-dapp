@@ -252,7 +252,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
                 pledged={Number(campaign.account.pledged)}
               />
             </div>
-            <div className="flex justify-between items-center text-cente">
+            <div className="flex justify-between items-center text-center">
               <div className="flex-1">
                 <p className="text-lg font-bold">{progressPercent}%</p>
                 <span className="text-sm">achieved</span>

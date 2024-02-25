@@ -17,6 +17,9 @@ const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string);
 const programID = new PublicKey(idl.metadata.address);
 
+const MIN_SUPPORT_AMOUNT_SOL = 0.01; // Minimum support amount in SOL
+const MAX_SUPPORT_AMOUNT_SOL = 43478; // Maximum support amount in SOL
+
 interface CampaignsTableProps {
   program: Program;
   walletKey: PublicKey;
@@ -37,6 +40,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
   const [imageLoading, setImageLoading] = useState(true);
   const [showImage, setShowImage] = useState(false);
   const [amount, setAmount] = useState("");
+  const [showDonors, setShowDonors] = useState(false);
   const ipfsProviders = [
     "https://dweb.link/ipfs/",
     "https://gateway.pinata.cloud/ipfs/",
@@ -47,6 +51,16 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
       (pledger) =>
         pledger.pledgerPubkey.toString() === ourWallet.publicKey?.toString()
     );
+  };
+
+  // Renamed function to avoid conflict
+  const toggleDonorsVisibility = () => {
+    setShowDonors(!showDonors);
+  };
+
+  // This function is called when the close button in the DonorsList is clicked
+  const closeDonorsList = () => {
+    setShowDonors(false); // Hide the DonorsList
   };
 
   const inputBgColor = `rgb(45, 46, 49)`;
@@ -101,11 +115,21 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
   };
 
   const supportCampaign = async (amount) => {
+    const amountLamports = solToLamports(amount);
+    if (
+      isNaN(amount) ||
+      amount < MIN_SUPPORT_AMOUNT_SOL ||
+      amount > MAX_SUPPORT_AMOUNT_SOL
+    ) {
+      toast.error(
+        `Support amount must be between ${MIN_SUPPORT_AMOUNT_SOL} and ${MAX_SUPPORT_AMOUNT_SOL} SOL.`
+      );
+      return;
+    }
     setIsSupporting(true);
     try {
       const anchProvider = await getProvider();
       const program = new Program(idl_object, programID, anchProvider);
-      const amountLamports = solToLamports(amount);
 
       await program.methods
         .campaignSupport(new BN(amountLamports))
@@ -121,8 +145,8 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
       console.log(
         "Campaign has been successfully supported " + campaignPublicKey
       );
-      setTimeout(getCampaign, 2000);
       setAmount("");
+      setTimeout(getCampaign, 2000);
     } catch (error) {
       toast.error("Error while supporting!", error);
       console.log("Error while supporting", error);
@@ -257,15 +281,16 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
         />
       </Head>
       <ToastContainer position="top-center" />
-      <div className="flex justify-center mt-10 mb-10">
-        <div className="card w-full max-w-4xl bg-base-100 shadow-xl">
+      <div className="flex justify-center mt-8 mb-10">
+        <div className="card w-full max-w-3xl bg-base-100 shadow-xl">
           <figure className="px-10 pt-10">
             <Image
               className={styles.campaignImage}
+              style={{ borderRadius: "1.1rem" }}
               src={computeImageUrl()}
               alt="Campaign Image"
-              width={500}
-              height={300}
+              width={750}
+              height={450}
               onLoad={() => {
                 setImageLoading(false);
               }}
@@ -280,52 +305,78 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
               {campaign.name}
             </h2>
             <p className="mb-4">{campaign.description}</p>
-
-            <ProgressBar
-              goal={Number(campaign.goal)}
-              pledged={Number(campaign.pledged)}
-            />
-            <div className="flex justify-between items-center my-4">
-              <div>
-                <p className="text-lg font-bold">{progressPercent}% achieved</p>
-                <p className="text-lg">
-                  {lamportsToSol(Number(campaign.pledged)).toString()} SOL
-                  collected
-                </p>
+            <div className="mt-auto">
+              <div className="mb-4">
+                <ProgressBar
+                  goal={Number(campaign.goal)}
+                  pledged={Number(campaign.pledged)}
+                />
               </div>
-              <div>
-                <Countdown endTime={endTime} />
+              <div className="flex justify-between items-center text-center">
+                <div className="flex-1">
+                  <p className="text-lg font-bold">{progressPercent}%</p>
+                  <span className="text-sm">achieved</span>
+                </div>
+                <div className="flex-1 border-l border-r border-gray-300">
+                  <p className="text-lg font-bold">
+                    {lamportsToSol(Number(campaign.pledged)).toString()} SOL
+                  </p>
+                  <span className="text-sm">collected</span>
+                </div>
+                <div className="flex-1">
+                  <Countdown endTime={endTime} />
+                  <span className="text-sm">remaining</span>
+                </div>
               </div>
-            </div>
-            {campaign && <DonorsList pledgers={campaign.pledgers} />}
 
-
-            {userHasDonated() && (
-                <button
-                  onClick={() => cancelSupport(campaignPublicKey)}
-                  className="btn btn-wide text-xl font-semibold ml-2"
-                  style={{ width: "100%" }}
-                >
-                  Cancel Support
-                </button>
+              {!showDonors && (
+                <div className={styles.buttonContainer}>
+                  <button
+                    onClick={toggleDonorsVisibility}
+                    className={`btn btn-wide ${styles.btnSupporters} text-xl font-semibold ml-2`}
+                  >
+                    Show Supporters
+                  </button>
+                </div>
               )}
-            <div className="card-actions justify-between">
 
-              <input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                style={{ backgroundColor: inputBgColor }}
-                placeholder="Amount in SOL"
-                className="input input-bordered input-primary w-full max-w-xs"
-              />
-              <button
-                onClick={() => supportCampaign(parseFloat(amount))}
-                className={`btn ${styles.btnSupport} btn-wide text-xl font-bold ml-2`}
-                disabled={isSupporting || parseFloat(amount) <= 0}
-              >
-                {isSupporting ? "Supporting..." : `Support with ${amount} SOL`}
-              </button>
+              {showDonors && (
+                <DonorsList
+                  pledgers={campaign?.pledgers}
+                  onClose={() => setShowDonors(false)}
+                />
+              )}
+
+              {userHasDonated() && (
+                <div className={styles.buttonContainer}>
+                  <button
+                    onClick={() => cancelSupport(campaignPublicKey)}
+                    className={`btn btn-wide ${styles.btnCancel} text-xl font-semibold ml-2`}
+                  >
+                    Cancel Support
+                  </button>
+                </div>
+              )}
+              <div className="card-actions justify-between">
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  style={{ backgroundColor: inputBgColor }}
+                  placeholder="Amount in SOL"
+                  className="input input-bordered input-primary w-full max-w-xs"
+                />
+
+                <button
+                  onClick={() => supportCampaign(parseFloat(amount))}
+                  className={`btn ${styles.btnSupport} btn-wide text-xl font-bold ml-2`}
+                  disabled={isSupporting || parseFloat(amount) <= 0}
+                >
+                  {isSupporting
+                    ? "Supporting..."
+                    : `Support with ${amount} SOL`}
+                </button>
+              </div>
             </div>
           </div>
         </div>

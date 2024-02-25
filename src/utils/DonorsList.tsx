@@ -1,35 +1,40 @@
 import React from 'react';
+import { XIcon } from "@heroicons/react/outline";
 import { lamportsToSol } from "@/utils/lamportsToSol";
+import { shortenAddress2 } from "@/utils/shortenAddress";
 import styles from "@/styles/DonorsList.module.css";
 
 const DonorLink = ({ publicKey }) => {
   const explorerBaseUrl = "https://explorer.solana.com";
   const networkParam = "?cluster=devnet";
-
   const explorerUrl = `${explorerBaseUrl}/address/${publicKey.toString()}${networkParam}`;
+  const shortAddress = shortenAddress2(publicKey.toString());
 
   return (
     <a href={explorerUrl} target="_blank" rel="noopener noreferrer">
-      {publicKey.toString()}
+      {shortAddress}
     </a>
   );
 };
 
-const DonorsList = ({ pledgers }) => {
+const DonorsList = ({ pledgers, onClose }) => {
   if (!pledgers || pledgers.length === 0) {
     return <p>No donors yet.</p>;
   }
 
   return (
-    <div>
-      <h3>Donors List:</h3>
+    // Apply card styling here
+    <div className={styles.donorsCard}>
       <ul className={styles.donorsContainer}>
         {pledgers.map((pledger, index) => (
           <li key={index} className={styles.donorItem}>
-            Donor Public Key: <DonorLink publicKey={pledger.pledgerPubkey} />, Amount: {lamportsToSol(Number(pledger.pledgedAmount)).toString()} SOL
+            <DonorLink publicKey={pledger.pledgerPubkey} />, Supported {lamportsToSol(Number(pledger.pledgedAmount)).toString()} SOL
           </li>
         ))}
       </ul>
+      <button onClick={onClose} className={styles.closeButton} aria-label="Close">
+        <XIcon className="h-6 w-6" />
+      </button>
     </div>
   );
 };
