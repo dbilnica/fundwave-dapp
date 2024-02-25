@@ -23,12 +23,13 @@ const DonorsList = ({ pledgers, onClose }) => {
   }
 
   return (
-    // Apply card styling here
     <div className={styles.donorsCard}>
       <ul className={styles.donorsContainer}>
         {pledgers.map((pledger, index) => (
           <li key={index} className={styles.donorItem}>
-            <DonorLink publicKey={pledger.pledgerPubkey} />, Supported {lamportsToSol(Number(pledger.pledgedAmount)).toString()} SOL
+            <strong>
+              <DonorLink publicKey={pledger.pledgerPubkey} />
+            </strong> - supported <strong>{lamportsToSol(Number(pledger.pledgedAmount)).toString()} SOL</strong>
           </li>
         ))}
       </ul>

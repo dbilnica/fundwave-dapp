@@ -9,8 +9,21 @@
   border-radius: 1.1rem;
   border: 1px solid #f5f5f5;
   max-width: 70%;
-  margin: 1.5rem auto; /* Add vertical margin for better spacing */
-  padding: 1rem; /* Add padding inside the card */
+  margin: auto;
+  padding: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  max-height: 200px;
+  overflow-y: auto; 
+}
+
+.donorsCard::-webkit-scrollbar {
+  display: none;
+}
+
+.donorsCard {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .donorItem {
@@ -20,7 +33,10 @@
   border-radius: 4px;
   overflow: hidden;
   text-align: center;
+}
 
+.donorItem strong {
+  font-weight: bold; /* This ensures the text is bold */
 }
 
 .closeButton {
@@ -30,7 +46,7 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  color: white; /* Or any color that is visible on the card's background */
+  color: white;
   z-index: 10;
 }
 
