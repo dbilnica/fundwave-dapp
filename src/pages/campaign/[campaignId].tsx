@@ -17,8 +17,8 @@ const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string);
 const programID = new PublicKey(idl.metadata.address);
 
-const MIN_SUPPORT_AMOUNT_SOL = 0.01; // Minimum support amount in SOL
-const MAX_SUPPORT_AMOUNT_SOL = 43478; // Maximum support amount in SOL
+const MIN_SUPPORT_AMOUNT_SOL = 0.01;
+const MAX_SUPPORT_AMOUNT_SOL = 43478;
 
 interface CampaignsTableProps {
   program: Program;
@@ -53,14 +53,8 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
     );
   };
 
-  // Renamed function to avoid conflict
   const toggleDonorsVisibility = () => {
     setShowDonors(!showDonors);
-  };
-
-  // This function is called when the close button in the DonorsList is clicked
-  const closeDonorsList = () => {
-    setShowDonors(false); // Hide the DonorsList
   };
 
   const inputBgColor = `rgb(45, 46, 49)`;
@@ -87,6 +81,21 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
     const baseUri = ipfsProviders[currentGatewayIndex % ipfsProviders.length];
     console.log();
     return `${baseUri}${campaign.imageIpfsHash}`;
+  };
+
+  const handleAmountChange = (e) => {
+    let value = e.target.value;
+    const regex = /^\d*\.?\d{0,2}$/;
+    if (value === "" || regex.test(value)) {
+      let numericValue = parseFloat(value);
+      if (isNaN(numericValue)) {
+        setAmount("");
+      } else if (numericValue < MIN_SUPPORT_AMOUNT_SOL) {
+        setAmount(MIN_SUPPORT_AMOUNT_SOL.toString());
+      } else {
+        setAmount(value);
+      }
+    }
   };
 
   const handleImageError = () => {
@@ -140,7 +149,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
         })
         .rpc();
       toast.success(
-        `Campaign "${campaign.name}" has been successfully reviewed!`
+        `Campaign "${campaign.name}" has been successfully supported!`
       );
       console.log(
         "Campaign has been successfully supported " + campaignPublicKey
@@ -166,10 +175,14 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
           user: anchProvider.wallet.publicKey,
         })
         .rpc();
-      console.log("Campaign support been successfully canceled");
+      toast.success("Your support has been successfully canceled.");
+      console.log("Campaign support has been successfully canceled");
       setTimeout(getCampaign, 2000);
     } catch (error) {
-      console.log("Error while cancelling support");
+      toast.error(
+        "There was an error canceling your support. Please try again."
+      );
+      console.log("Error while cancelling support", error);
     }
   };
 
@@ -281,7 +294,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
         />
       </Head>
       <ToastContainer position="top-center" />
-      <div className="flex justify-center mt-8 mb-10">
+      <div className={`flex justify-center mt-8 mb-10 ${styles.mobileMarginAdjustment}`}>
         <div className="card w-full max-w-3xl bg-base-100 shadow-xl">
           <figure className="px-10 pt-10">
             <Image
@@ -372,9 +385,9 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
                     id="support"
                     type="number"
                     value={amount}
-                    max={MAX_SUPPORT_AMOUNT_SOL}
-                    step="1"
-                    onChange={(e) => setAmount(e.target.value)}
+                    max={MAX_SUPPORT_AMOUNT_SOL.toString()}
+                    step="0.5"
+                    onChange={handleAmountChange}
                     style={{ backgroundColor: inputBgColor }}
                     placeholder="Amount in SOL"
                     className={`input input-bordered input-primary ${styles.inputSupport}`}

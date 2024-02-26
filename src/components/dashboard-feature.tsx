@@ -215,36 +215,45 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
 
     return (
       <div className="card w-96 bg-base-100 shadow-xl m-2">
-        <figure className="px-10 pt-10 relative">
-          {imageLoading && <Loader />}
-          {showImage && (
-            <div className="overflow-hidden" style={{ borderRadius: "0.5rem" }}>
-              <Image
-                src={computeImageUrl()}
-                alt="Campaign Image"
-                width={500}
-                height={300}
-                onLoad={() => {
-                  setImageLoading(false);
-                }}
-                onError={() => {
-                  console.error("Image failed to load");
-                  handleImageError();
-                }}
-              />
-            </div>
-          )}
-        </figure>
+        <Link href={`/campaign/${campaignId}`} passHref>
+            <figure className="px-10 pt-10 relative cursor-pointer">
+              {imageLoading && <Loader />}
+              {showImage && (
+                <div
+                  className="overflow-hidden"
+                  style={{ borderRadius: "0.5rem" }}
+                >
+                  <Image
+                    src={computeImageUrl()}
+                    alt="Campaign Image"
+                    width={500}
+                    height={300}
+                    onLoad={() => {
+                      setImageLoading(false);
+                    }}
+                    onError={() => {
+                      console.error("Image failed to load");
+                      handleImageError();
+                    }}
+                  />
+                </div>
+              )}
+            </figure>
+        </Link>
         <div className="card-body flex flex-col">
-          <h2
-            className="line-clamp-2 card-title text-left text-2xl font-bold mb-1"
-            style={{ textTransform: "uppercase" }}
-          >
-            {campaign.account.name}
-          </h2>
-          <p className="line-clamp-3 text-left text-lg mb-4 flex-grow">
-            {campaign.account.description}
-          </p>
+          <Link href={`/campaign/${campaignId}`} passHref>
+              <h2
+                className="line-clamp-2 card-title text-left text-2xl font-bold mb-1 cursor-pointer"
+                style={{ textTransform: "uppercase" }}
+              >
+                {campaign.account.name}
+              </h2>
+          </Link>
+          <Link href={`/campaign/${campaignId}`} passHref>
+              <p className="line-clamp-3 text-left text-lg mb-4 flex-grow cursor-pointer">
+                {campaign.account.description}
+              </p>
+          </Link>
           <div className="mt-auto">
             <div className="mb-4">
               <ProgressBar
