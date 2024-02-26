@@ -35,6 +35,7 @@ export const PortfolioDetail: FC<CampaignsTableProps> = ({ program }) => {
   const [showImage, setShowImage] = useState(false);
   const [showDonors, setShowDonors] = useState(false);
   const [isWithdrawEnabled, setIsWithdrawEnabled] = useState(false);
+  const [isWithdrawn, setIsWithdrawn] = useState(false);
   const ipfsProviders = [
     "https://dweb.link/ipfs/",
     "https://gateway.pinata.cloud/ipfs/",
@@ -60,6 +61,7 @@ export const PortfolioDetail: FC<CampaignsTableProps> = ({ program }) => {
       if (userOwnedCampaign) {
         setCampaign(userOwnedCampaign.account);
         setCampaignPublicKey(userOwnedCampaign.publicKey);
+        setIsWithdrawn(userOwnedCampaign.account.isWithdrawn);
       } else {
         console.error("No campaign found for the current user.");
         setCampaign(null);
@@ -363,14 +365,24 @@ export const PortfolioDetail: FC<CampaignsTableProps> = ({ program }) => {
                   onClose={() => setShowDonors(false)}
                 />
               )}
+
               <div className={styles.buttonContainer}>
-                <button
-                  onClick={() => withdrawCampaign(campaignPublicKey)}
-                  className={`btn btn-wide ${styles.btnWithdraw} text-xl font-bold`}
-                  disabled={!isWithdrawEnabled || isWithdrawing}
-                >
-                  {isWithdrawing ? "Withdrawing..." : "Withdraw Campaign"}
-                </button>
+                {isWithdrawn ? (
+                  <button
+                    className={`btn btn-wide ${styles.btnWithdraw} text-xl font-bold`}
+                    disabled
+                  >
+                    Campaign Withdrawed
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => withdrawCampaign(campaignPublicKey)}
+                    className={`btn btn-wide ${styles.btnWithdraw} text-xl font-bold`}
+                    disabled={!isWithdrawEnabled || isWithdrawing}
+                  >
+                    {isWithdrawing ? "Withdrawing..." : "Withdraw Campaign"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
