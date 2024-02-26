@@ -17,22 +17,22 @@ Fundwave is a cutting-edge platform that enables users to launch and contribute 
 
 Clone the repository:
 
-```bash
+```
 git clone https://github.com/dbilnica/crowdfunding-dapp.git
 cd crowdfunding-dapp
-```bash
+```
 
 ## Install the dependencies:
 
-```bash
+```
 npm install
-```bash
+```
 
 ## Start the development server:
 
-```bash
+```
 npm run dev
-```bash
+```
 
 ## Usage
 
