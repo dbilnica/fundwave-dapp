@@ -1,7 +1,135 @@
-.btnWithdraw{
-    background-color: #2a0a5e;
-    color: #fff;
-    border: none;
-    width: 9rem
+.campaignImage {
+  max-width: 100%;
+  height: auto;
+}
+
+.btnWithdraw {
+  padding: 0.5rem 2rem;
+  white-space: nowrap;
+  text-align: center;
+  min-width: 250px;
+  background-color: #2a0a5e;
+  color: #fff;
+  transition: background-color 0.3s;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.1rem;
+}
+
+.btnSupporters {
+  margin: 0.5rem;
+  text-align: center;
+  padding: 10px 40px;
+  min-width: 200px;
+  background-color: rgb(75, 0, 130);
+  color: #fff;
+  transition: background-color 0.3s;
+  border: none;
+  cursor: pointer;
+}
+
+.cardActions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.inputButtonContainer {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.ownerAddress {
+  margin-top: 0.1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+}
+
+.ownerAddress span {
+  color: #4b5563;
+  font-weight: 600;
+}
+
+.ownerLink {
+  color: #6366f1;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.ownerLink:hover,
+.ownerLink:focus {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .mobileMarginAdjustment {
+    margin-top: 0rem;
   }
   
+  .ownerAddress {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 5px;
+    margin-top: 0.1rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .ownerAddress span, .ownerAddress a {
+    margin-bottom: 0.5rem;
+  }
+
+  .cardActions {
+    flex-direction: column;
+  }
+
+  .buttonContainer {
+    padding: 0.1rem;
+  }
+
+  .cardBody,
+  .campaignsView {
+    padding: 0.1rem;
+  }
+
+  .cardTitle {
+    font-size: 1.5rem;
+  }
+
+  .flex-justify-between {
+    flex-direction: column;
+  }
+  .flex-1 {
+    margin-bottom: 10px;
+  }
+}
+
+.btn:hover,
+.btn:focus {
+  background-color: #3a1d6e;
+}
+
+.desktop-only {
+  display: none;
+}
+
+@media (min-width: 601px) {
+  .desktop-only {
+    display: block;
+  }
+}

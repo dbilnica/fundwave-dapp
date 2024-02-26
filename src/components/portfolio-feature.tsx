@@ -1,22 +1,17 @@
 import { useRouter } from "next/router";
 import Head from "next/head";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useCallback } from "react";
 import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import {
-  BN,
-  Program,
-  ProgramAccount,
-  AnchorProvider,
-  web3,
-  utils,
-  getProvider,
-} from "@project-serum/anchor";
+import { BN, Program, AnchorProvider, web3 } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import { toast, ToastContainer } from "react-toastify";
-import Image from "next/image"
-import styles from "@/styles/Portfolio.module.css";
+import { lamportsToSol } from "@/utils/lamportsToSol";
+import { shortenAddress } from "@/utils/shortenAddress";
+import Image from "next/image";
 import "react-toastify/dist/ReactToastify.css";
+import DonorsList from "utils/DonorsList";
+import styles from "@/styles/Portfolio.module.css";
 
 const idl_string = JSON.stringify(idl);
 const idl_object = JSON.parse(idl_string);
@@ -27,80 +22,60 @@ interface CampaignsTableProps {
   walletKey: PublicKey;
 }
 
-export const PortfolioDetail: FC<CampaignsTableProps> = ({
-  program,
-  walletKey
-}) => {
+export const PortfolioDetail: FC<CampaignsTableProps> = ({ program }) => {
   const [campaign, setCampaign] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const ourWallet = useWallet();
   const { connection } = useConnection();
-  const [campaignPublicKey, setCampaignPublicKey] = useState(null);
-  const [isSupporting, setIsSupporting] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
   const [userPublicKey, setUserPublicKey] = useState(null);
   const [walletConnected, setWalletConnected] = useState<boolean | null>(null);
+  const [campaignPublicKey, setCampaignPublicKey] = useState(null);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
   const [showImage, setShowImage] = useState(false);
+  const [showDonors, setShowDonors] = useState(false);
+  const [isWithdrawEnabled, setIsWithdrawEnabled] = useState(false);
   const ipfsProviders = [
     "https://dweb.link/ipfs/",
     "https://gateway.pinata.cloud/ipfs/",
   ];
-
-const renderDonorsList = () => {
-  if (!campaign?.pledgers || campaign.pledgers.length === 0) {
-    return <p>No donors yet.</p>;
-  }
-
-  return (
-    <div>
-      <h3>Donors List:</h3>
-      <ul>
-        {campaign.pledgers.map((pledger, index) => (
-          <li key={index}>
-            {`Donor Public Key: ${pledger.pledgerPubkey.toString()}, Amount: ${pledger.pledgedAmount}`}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
+  const explorerBaseUrl = "https://explorer.solana.com";
+  const networkParam = "?cluster=devnet";
 
   const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
 
-  const getAllCampaigns = async () => {
+  const toggleDonorsVisibility = () => {
+    setShowDonors(!showDonors);
+  };
+
+  const getCampaign = useCallback(async () => {
     setIsLoading(true);
     try {
-      const fetchedCampaigns = await program.account.campaign.all();
-      
-      console.log("Campaign owners:");
-      fetchedCampaigns.forEach(({account}) => {
-        console.log(account.owner.toBase58());
-      });
-  
-      const userPublicKeyString = userPublicKey?.toString();
-      console.log("User Public Key:", userPublicKeyString);
-      
-      const userOwnedCampaign = fetchedCampaigns.find(({account}) => 
-        account.owner.toBase58() === userPublicKeyString
+      const campaigns = await program.account.campaign.all();
+      const userOwnedCampaign = campaigns.find(
+        ({ account }) =>
+          account.owner.toBase58() === ourWallet.publicKey?.toBase58()
       );
-      
-      setCampaign(userOwnedCampaign ? userOwnedCampaign.account : null);
-      setIsLoading(false);
+
+      if (userOwnedCampaign) {
+        setCampaign(userOwnedCampaign.account);
+        setCampaignPublicKey(userOwnedCampaign.publicKey);
+      } else {
+        console.error("No campaign found for the current user.");
+        setCampaign(null);
+      }
     } catch (error) {
-      console.error("Failed to fetch campaigns:", error);
+      console.error("Error fetching campaigns:", error);
+    } finally {
       setIsLoading(false);
     }
-  };
-  
-  
+  }, [program, ourWallet.publicKey]);
+
   const computeImageUrl = () => {
     const baseUri = ipfsProviders[currentGatewayIndex % ipfsProviders.length];
-    console.log()
+    console.log();
     return `${baseUri}${campaign.imageIpfsHash}`;
   };
-
-
 
   const handleImageError = () => {
     console.error(
@@ -113,7 +88,7 @@ const renderDonorsList = () => {
   };
 
   const Loader = () => (
-    <div className="flex justify-center items-center">
+    <div className={`${styles.loader} flex justify-center items-center`}>
       <span className="loading loading-spinner loading-lg"></span>
     </div>
   );
@@ -127,48 +102,38 @@ const renderDonorsList = () => {
     return provider;
   };
 
-  const getUserPubkey = async () => {
-    try {
-      const anchProvider = await getProvider();
-      if (anchProvider.wallet.publicKey) {
-        const signerPubkey = anchProvider.wallet.publicKey;
-        setUserPublicKey(signerPubkey);
-        console.log("User Public Key:", signerPubkey.toBase58());
-      } else {
-        console.log("Wallet is not connected.");
-      }
-    } catch (error) {
-      console.error("Failed to fetch user public key:", error);
-    }
-  };
-
   useEffect(() => {
-    if (ourWallet.connected && ourWallet.publicKey) {
-      getUserPubkey();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ourWallet]);
-
-  useEffect(() => {
-    if (ourWallet.connected) {
-      setWalletConnected(true);
+    const isConnected = ourWallet.connected;
+    setWalletConnected(isConnected);
+    if (isConnected && ourWallet.publicKey) {
+      const signerPubkey = ourWallet.publicKey;
+      setUserPublicKey(signerPubkey);
     } else {
-      setWalletConnected(false);
+      setUserPublicKey(null);
+      console.log("Wallet is not connected.");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ourWallet.connected]);
+  }, [ourWallet.connected, ourWallet.publicKey]);
 
   useEffect(() => {
-    if (userPublicKey && program) { 
-      getAllCampaigns();
+    if (userPublicKey && program) {
+      getCampaign();
     }
-  }, [userPublicKey, program]);
+  }, [userPublicKey, program, getCampaign]);
+
+  useEffect(() => {
+    if (campaign) {
+      const isPledgedEnough = campaign.pledged / campaign.goal >= 0.8;
+      const canWithdraw = isPledgedEnough && !campaign.isWithdrawn;
+      setIsWithdrawEnabled(canWithdraw);
+    }
+  }, [campaign]);
 
   if (walletConnected === null) {
-    return null; 
+    return null;
   }
 
   const withdrawCampaign = async (publicKey) => {
+    setIsWithdrawing(true);
     try {
       const anchProvider = await getProvider();
       const program = new Program(idl_object, programID, anchProvider);
@@ -180,10 +145,14 @@ const renderDonorsList = () => {
           user: anchProvider.wallet.publicKey,
         })
         .rpc();
-      console.log("Campaign has been successfully withdrawed " + publicKey);
+      toast.success("Campaign has been successfully withdrawn: " + publicKey);
+      console.log("Campaign has been successfully withdrawn " + publicKey);
+      setTimeout(getCampaign, 2000);
     } catch (error) {
-      console.log("Error while withdrawing");
+      toast.error("Error while withdrawing", error);
+      console.log("Error while withdrawing", error);
     }
+    setIsWithdrawing(false);
   };
 
   const calculateTimeRemaining = (endTimestamp) => {
@@ -219,6 +188,16 @@ const renderDonorsList = () => {
 
       return () => clearInterval(timer);
     }, [endTime]);
+
+    useEffect(() => {
+      if (campaign) {
+        const timeoutId = setTimeout(() => {
+          setShowImage(true);
+        }, 500);
+        return () => clearTimeout(timeoutId);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [campaign]);
 
     const formatRemainingTime = () => {
       if (timeLeft.distance <= 0) {
@@ -259,27 +238,16 @@ const renderDonorsList = () => {
     );
   };
 
-
-  
-  
-
-  if (isLoading) {
+  if (!campaign) {
     return <Loader />;
   }
-  
-  if (!campaign) {
-    return <div>No campaign found or you do not own any campaigns.</div>;
-  }  
 
   const progressPercent = (
     (Number(campaign.pledged) / Number(campaign.goal)) *
     100
   ).toFixed(1);
   const endTime = new Date(campaign.endCampaign.toNumber() * 1000).getTime();
-  
 
-
-  
   return (
     <>
       <Head>
@@ -289,53 +257,121 @@ const renderDonorsList = () => {
           content={`${campaign.name}: ${campaign.description}`}
         />
       </Head>
-      <ToastContainer position="top-center" />
-      <div className="flex justify-center mt-10 mb-10">
-        <div className="card w-full max-w-4xl bg-base-100 shadow-xl">
+      <ToastContainer position="bottom-center" />
+      <div
+        className={`flex justify-center mt-0 mb-10 ${styles.mobileMarginAdjustment}`}
+      >
+        <div className="card w-full max-w-3xl bg-base-100 shadow-xl">
           <figure className="px-10 pt-10">
-          <Image
-            src={computeImageUrl()}
-            alt="Campaign Image"
-            width={500}
-            height={300}
-            onLoad={() => {
-              setImageLoading(false);
-            }}
-            onError={() => {
-              console.error("Image failed to load");
-              handleImageError();
-            }}
-          />
+            <Image
+              className={styles.campaignImage}
+              style={{ borderRadius: "1.1rem" }}
+              src={computeImageUrl()}
+              alt="Campaign Image"
+              width={750}
+              height={450}
+              onLoad={() => {
+                setImageLoading(false);
+              }}
+              onError={() => {
+                console.error("Image failed to load");
+                handleImageError();
+              }}
+            />
           </figure>
           <div className="card-body">
-            <h2 className="card-title text-4xl font-bold">{campaign.name}</h2>
-            <p className="mb-4">{campaign.description}</p>
+            <div className="flex flex-col items-start text-left">
+              <h2 className={`${styles.cardTitle} text-4xl font-bold`}>
+                {campaign.name}
+              </h2>
+              <p className="mt-2 mb-4">{campaign.description}</p>
+            </div>
 
-            <ProgressBar
-              goal={Number(campaign.goal)}
-              pledged={Number(campaign.pledged)}
-            />
-            <div className="flex justify-between items-center my-4">
+            <div
+              className={`${styles.ownerAddress} flex justify-between items-center`}
+            >
               <div>
-                <p className="text-lg font-bold">{progressPercent}% achieved</p>
-                <p className="text-lg">
-                  {campaign.pledged?.toString()} SOL collected
-                </p>
+                <span>Campaign Owner: </span>
+                <a
+                  href={`${explorerBaseUrl}/address/${campaign?.owner?.toString()}${networkParam}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.ownerLink}
+                >
+                  {shortenAddress(campaign?.owner?.toString() ?? "")}
+                </a>
               </div>
               <div>
-                <Countdown endTime={endTime} />
-                
+                <span>Campaign Address:</span>
+                <a
+                  href={`${explorerBaseUrl}/address/${campaignPublicKey?.toString()}${networkParam}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.ownerLink}
+                >
+                  {shortenAddress(campaignPublicKey?.toString() ?? "")}
+                </a>
               </div>
             </div>
-            {renderDonorsList()}
+            <div className="mt-auto">
+              <div className="mb-4">
+                <ProgressBar
+                  goal={Number(campaign.goal)}
+                  pledged={Number(campaign.pledged)}
+                />
+              </div>
+              <div className="flex justify-between items-center text-center">
+                <div className="flex-1">
+                  <p className="text-lg font-bold">{progressPercent}%</p>
+                  <span className="text-sm">achieved</span>
+                </div>
+                <div className="flex-1 border-l border-r border-gray-300">
+                  <p className="text-lg font-bold">
+                    {lamportsToSol(Number(campaign.pledged)).toString()} SOL
+                  </p>
+                  <span className="text-sm">collected</span>
+                </div>
+                <div className="flex-1 border-r border-gray-300">
+                  <p className="text-lg font-bold">
+                    {lamportsToSol(Number(campaign.goal)).toString()} SOL
+                  </p>
+                  <span className="text-sm">goal</span>
+                </div>
 
-            <div className="card-actions justify-end">
-              <button
-                onClick={() => withdrawCampaign(campaignPublicKey)}
-                className="btn btn-warning"
-              >
-                Withdraw Campaign
-              </button>
+                <div className="flex-1">
+                  <div className="text-lg font-bold">
+                    <Countdown endTime={endTime} />
+                  </div>
+                  <span className="text-sm">remaining</span>
+                </div>
+              </div>
+
+              {!showDonors && (
+                <div className={styles.buttonContainer}>
+                  <button
+                    onClick={toggleDonorsVisibility}
+                    className={`btn ${styles.btnSupporters} text-xl font-semibold ml-2`}
+                  >
+                    Show Supporters
+                  </button>
+                </div>
+              )}
+
+              {showDonors && (
+                <DonorsList
+                  pledgers={campaign?.pledgers}
+                  onClose={() => setShowDonors(false)}
+                />
+              )}
+              <div className={styles.buttonContainer}>
+                <button
+                  onClick={() => withdrawCampaign(campaignPublicKey)}
+                  className={`btn btn-wide ${styles.btnWithdraw} text-xl font-bold`}
+                  disabled={!isWithdrawEnabled || isWithdrawing}
+                >
+                  {isWithdrawing ? "Withdrawing..." : "Withdraw Campaign"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -351,24 +387,19 @@ export const ShowPortfolio: FC = () => {
   const { connection } = useConnection();
   const [program, setProgram] = useState<Program | null>(null);
 
-  const getProvider = async (): Promise<AnchorProvider> => {
-    const provider = new AnchorProvider(
-      connection,
-      ourWallet,
-      AnchorProvider.defaultOptions()
-    );
-    return provider;
-  };
-
-  const initializeProgram = async () => {
+  const initializeProgram = useCallback(async () => {
     try {
-      const anchProvider = await getProvider();
+      const anchProvider = new AnchorProvider(
+        connection,
+        ourWallet,
+        AnchorProvider.defaultOptions()
+      );
       const program = new Program(idl_object, programID, anchProvider);
       setProgram(program);
     } catch (error) {
-      console.error("Error while program initialization");
+      console.error("Error while initializing program:", error);
     }
-  };
+  }, [connection, ourWallet]);
 
   const campaignIdString = Array.isArray(campaignId)
     ? campaignId[0]
@@ -376,15 +407,11 @@ export const ShowPortfolio: FC = () => {
 
   useEffect(() => {
     initializeProgram();
-  }, [ourWallet, connection]);
-
+  }, [initializeProgram]);
 
   return (
-    <div className="campaigns-view p-5">
-      <PortfolioDetail
-        walletKey={ourWallet.publicKey!}
-        program={program}
-      />
+    <div className={`${styles.campaignsView} p-5`}>
+      <PortfolioDetail walletKey={ourWallet.publicKey!} program={program} />
     </div>
   );
 };

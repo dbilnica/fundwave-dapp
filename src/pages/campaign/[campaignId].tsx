@@ -29,7 +29,6 @@ interface CampaignsTableProps {
 
 export const CampaignDetail: FC<CampaignsTableProps> = ({
   program,
-  walletKey,
   campaignId,
 }) => {
   const [campaign, setCampaign] = useState(null);
