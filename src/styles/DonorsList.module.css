@@ -1,4 +1,5 @@
 .donorsContainer {
+  position: relative;
   padding: 0;
   list-style: none;
   margin: 0;
@@ -8,13 +9,13 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border-radius: 1.1rem;
   border: 1px solid #f5f5f5;
-  max-width: 70%;
+  max-width: 75%;
   margin: auto;
   padding: 1rem;
   margin-top: 2rem;
   margin-bottom: 1rem;
   max-height: 200px;
-  overflow-y: auto; 
+  overflow: auto;
 }
 
 .donorsCard::-webkit-scrollbar {
@@ -27,7 +28,7 @@
 }
 
 .donorItem {
-  padding: 8px;
+  padding: 4px;
   margin-bottom: 8px;
   word-break: break-word;
   border-radius: 4px;
@@ -36,25 +37,45 @@
 }
 
 .donorItem strong {
-  font-weight: bold; /* This ensures the text is bold */
+  font-weight: bold;
+}
+
+.closeButtonContainer {
+  position: sticky;
+  top: 0;
+  right: 0; 
+  z-index: 10;
+  width: 100%;
+  text-align: right;
 }
 
 .closeButton {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
   background: transparent;
   border: none;
   cursor: pointer;
   color: white;
-  z-index: 10;
 }
 
+.donorLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: 8px;
+  border-radius: inherit;
+}
+
+.donorLink:hover, .donorLink:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+  outline: none;
+}
 
 @media (max-width: 600px) {
   .donorItem {
     font-size: 0.8rem;
     padding: 4px;
     margin-bottom: 4px;
+  }
+  .donorsCard {
+    max-width: 88%;
   }
 }

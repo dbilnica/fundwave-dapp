@@ -39,7 +39,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
   const [isSupporting, setIsSupporting] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [showImage, setShowImage] = useState(false);
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState("1");
   const [showDonors, setShowDonors] = useState(false);
   const ipfsProviders = [
     "https://dweb.link/ipfs/",
@@ -323,8 +323,17 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
                   </p>
                   <span className="text-sm">collected</span>
                 </div>
+                <div className="flex-1 border-r border-gray-300">
+                  <p className="text-lg font-bold">
+                    {lamportsToSol(Number(campaign.goal)).toString()} SOL
+                  </p>
+                  <span className="text-sm">goal</span>
+                </div>
+
                 <div className="flex-1">
-                  <Countdown endTime={endTime} />
+                  <p className="text-lg font-bold">
+                    <Countdown endTime={endTime} />
+                  </p>
                   <span className="text-sm">remaining</span>
                 </div>
               </div>
@@ -357,25 +366,30 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
                   </button>
                 </div>
               )}
-              <div className="card-actions justify-between">
-                <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  style={{ backgroundColor: inputBgColor }}
-                  placeholder="Amount in SOL"
-                  className="input input-bordered input-primary w-full max-w-xs"
-                />
-
-                <button
-                  onClick={() => supportCampaign(parseFloat(amount))}
-                  className={`btn ${styles.btnSupport} btn-wide text-xl font-bold ml-2`}
-                  disabled={isSupporting || parseFloat(amount) <= 0}
-                >
-                  {isSupporting
-                    ? "Supporting..."
-                    : `Support with ${amount} SOL`}
-                </button>
+              <div className={styles.cardActions}>
+                <div className={styles.inputButtonContainer}>
+                  <input
+                    id="support"
+                    type="number"
+                    value={amount}
+                    max={MAX_SUPPORT_AMOUNT_SOL}
+                    step="1"
+                    onChange={(e) => setAmount(e.target.value)}
+                    style={{ backgroundColor: inputBgColor }}
+                    placeholder="Amount in SOL"
+                    className={`input input-bordered input-primary ${styles.inputSupport}`}
+                    required
+                  />
+                  <button
+                    onClick={() => supportCampaign(parseFloat(amount))}
+                    className={`btn ${styles.btnSupport} text-xl font-bold`}
+                    disabled={isSupporting || parseFloat(amount) <= 0}
+                  >
+                    {isSupporting
+                      ? "Supporting..."
+                      : `Support with ${amount} SOL`}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

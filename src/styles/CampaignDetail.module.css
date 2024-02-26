@@ -2,56 +2,102 @@
   max-width: 100%;
   height: auto;
 }
+
 .btnSupport {
+  white-space: nowrap;
+  padding: 0.5rem 2rem; 
+  white-space: nowrap;
   background-color: #2a0a5e;
   color: #fff;
   border: none;
+  
 }
 
 .buttonContainer {
   display: flex;
-  justify-content: center; /* This will center the button */
-  padding: 1rem 0; /* Add padding at the top and bottom */
+  justify-content: center;
+  padding: 1rem 0;
 }
 
 .btnSupporters {
-  margin: 0.5rem; /* Add some margin around the button */
-  text-align: center; /* Ensure the text is centered in the button */
-  width: auto; /* Allow the button to size according to its content */
-  min-width: 150px; 
+  margin: 0.5rem;
+  text-align: center;
+  padding: 10px 40px;
+  min-width: 200px;
   background-color: #2a0a5e;
   color: #fff;
-  transition: background-color 0.3s; /* Smooth background color transition on hover/focus */
+  transition: background-color 0.3s;
+  border: none;
+  cursor: pointer;
 }
 
-.btn:hover,
-.btn:focus {
-  background-color: #3a1d6e; /* A slightly lighter purple to indicate interactivity */
+.cardActions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-.btnCancel {
-  max-width: 60%;
+.inputButtonContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.inputSupport {
+  width: auto; 
+  max-width: 100px; 
+  margin-right: 1rem; 
 }
 
 @media (max-width: 600px) {
-  .buttonContainer {
-    padding: 1rem 0;
+  .btnSupporters, .btnCancel, .btnSupport {
+    width: 100%;
+    margin: 0.25rem 0; 
   }
+
+  .inputSupport {
+    width: calc(100% - 2rem);
+    margin: 0.25rem 0;
+  }
+
+  .inputButtonContainer {
+    flex-direction: column;
+  }
+
+  .cardActions {
+    flex-direction: column;
+  }
+
+  .buttonContainer, .cardBody, .campaignsView {
+    padding: 0.5rem;
+  }
+
   .cardTitle {
     font-size: 1.5rem;
   }
 
-  .cardBody {
-    padding: 1rem;
+  .flex-justify-between {
+    flex-direction: column;
   }
-
-  .btn {
-    padding: 0.5rem 1rem; /* Smaller padding on small screens */
-    margin: 0.25rem; /* Smaller margin on small screens */
-    min-width: 120px; /* Smaller minimum width on small screens */
+  .flex-1 {
+    margin-bottom: 10px; /* Adds space between items when stacked on small screens */
   }
+}
 
-  .campaignsView {
-    padding: 1rem;
+.btn:hover, .btn:focus {
+  background-color: #3a1d6e; 
+}
+
+.desktop-only {
+  display: none;
+}
+
+@media (min-width: 601px) {
+  .desktop-only {
+    display: block;
   }
 }
