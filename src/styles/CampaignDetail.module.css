@@ -47,6 +47,32 @@
   width: 100%;
 }
 
+.ownerAddress {
+  margin-top: 0.1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+}
+
+.ownerAddress span {
+  color: #4b5563;
+  font-weight: 600;
+}
+
+.ownerLink {
+  color: #6366f1;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.ownerLink:hover,
+.ownerLink:focus {
+  text-decoration: underline;
+}
+
 .inputSupport {
   width: auto;
   max-width: 100px;
@@ -56,6 +82,23 @@
 @media (max-width: 600px) {
   .mobileMarginAdjustment {
     margin-top: 1rem;
+  }
+  .ownerAddress {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 5px;
+    margin-top: 0.1rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .ownerAddress span, .ownerAddress a {
+    margin-bottom: 0.5rem;
+  }
+
+  .inputSupport {
+    width: 100%;
+    margin-top: 0.5rem;
+    margin-right: 0;
   }
   .btnSupporters {
     width: 100%;

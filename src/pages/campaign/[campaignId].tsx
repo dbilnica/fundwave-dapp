@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import Head from "next/head";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useCallback } from "react";
 import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { BN, Program, AnchorProvider, web3 } from "@project-serum/anchor";
@@ -8,6 +8,7 @@ import { PublicKey } from "@solana/web3.js";
 import { toast, ToastContainer } from "react-toastify";
 import { solToLamports } from "@/utils/solToLamports";
 import { lamportsToSol } from "@/utils/lamportsToSol";
+import { shortenAddress } from "@/utils/shortenAddress";
 import Image from "next/image";
 import "react-toastify/dist/ReactToastify.css";
 import DonorsList from "utils/DonorsList";
@@ -45,6 +46,9 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
     "https://dweb.link/ipfs/",
     "https://gateway.pinata.cloud/ipfs/",
   ];
+  const explorerBaseUrl = "https://explorer.solana.com";
+  const networkParam = "?cluster=devnet";
+
   const [currentGatewayIndex, setCurrentGatewayIndex] = useState(0);
   const userHasDonated = () => {
     return campaign?.pledgers?.some(
@@ -59,7 +63,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
 
   const inputBgColor = `rgb(45, 46, 49)`;
 
-  const getCampaign = async () => {
+  const getCampaign = useCallback(async () => {
     if (!campaignId) {
       console.error("Campaign ID is undefined");
       setIsLoading(false);
@@ -70,12 +74,12 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
       const campaignData = await program.account.campaign.fetch(campaignKey);
       setCampaign(campaignData);
       setCampaignPublicKey(campaignKey);
-      console.log(campaignData);
-      setIsLoading(false);
     } catch (error) {
+      console.error("Error fetching campaign:", error);
+    } finally {
       setIsLoading(false);
     }
-  };
+  }, [campaignId, program]);
 
   const computeImageUrl = () => {
     const baseUri = ipfsProviders[currentGatewayIndex % ipfsProviders.length];
@@ -260,10 +264,10 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
   };
 
   useEffect(() => {
-    if (campaignId && typeof campaignId === "string") {
+    if (program && campaignId && typeof campaignId === "string") {
       getCampaign();
     }
-  }, [campaignId, walletKey, program]);
+  }, [campaignId, getCampaign, program]);
 
   useEffect(() => {
     if (campaign) {
@@ -272,7 +276,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
       }, 500);
       return () => clearTimeout(timeoutId);
     }
-  }, [campaign?.imageIpfsHash]);
+  }, [campaign]);
 
   if (!campaign) {
     return <Loader />;
@@ -294,7 +298,9 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
         />
       </Head>
       <ToastContainer position="top-center" />
-      <div className={`flex justify-center mt-8 mb-10 ${styles.mobileMarginAdjustment}`}>
+      <div
+        className={`flex justify-center mt-8 mb-10 ${styles.mobileMarginAdjustment}`}
+      >
         <div className="card w-full max-w-3xl bg-base-100 shadow-xl">
           <figure className="px-10 pt-10">
             <Image
@@ -318,6 +324,32 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
               {campaign.name}
             </h2>
             <p className="mb-4">{campaign.description}</p>
+            <div
+              className={`${styles.ownerAddress} flex justify-between items-center`}
+            >
+              <div>
+                <span>Campaign Owner: </span>
+                <a
+                  href={`${explorerBaseUrl}/address/${campaign?.owner?.toString()}${networkParam}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.ownerLink}
+                >
+                  {shortenAddress(campaign?.owner?.toString() ?? "")}
+                </a>
+              </div>
+              <div>
+                <span>Campaign Address:</span>
+                <a
+                  href={`${explorerBaseUrl}/address/${campaignPublicKey?.toString()}${networkParam}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.ownerLink}
+                >
+                  {shortenAddress(campaignPublicKey?.toString() ?? "")}
+                </a>
+              </div>
+            </div>
             <div className="mt-auto">
               <div className="mb-4">
                 <ProgressBar
@@ -344,9 +376,9 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
                 </div>
 
                 <div className="flex-1">
-                  <p className="text-lg font-bold">
+                  <div className="text-lg font-bold">
                     <Countdown endTime={endTime} />
-                  </p>
+                  </div>
                   <span className="text-sm">remaining</span>
                 </div>
               </div>
@@ -428,15 +460,19 @@ export const ShowCampaign: FC = () => {
     return provider;
   };
 
-  const initializeProgram = async () => {
+  const initializeProgram = useCallback(async () => {
     try {
-      const anchProvider = await getProvider();
+      const anchProvider = new AnchorProvider(
+        connection,
+        ourWallet,
+        AnchorProvider.defaultOptions()
+      );
       const program = new Program(idl_object, programID, anchProvider);
       setProgram(program);
     } catch (error) {
-      console.error("Error while program initialization");
+      console.error("Error while initializing program:", error);
     }
-  };
+  }, [connection, ourWallet]);
 
   const campaignIdString = Array.isArray(campaignId)
     ? campaignId[0]
@@ -444,7 +480,7 @@ export const ShowCampaign: FC = () => {
 
   useEffect(() => {
     initializeProgram();
-  }, [ourWallet, connection]);
+  }, [initializeProgram]);
 
   return (
     <div className={`${styles.campaignsView} p-5`}>
