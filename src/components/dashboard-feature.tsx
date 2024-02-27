@@ -168,7 +168,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
     const endTime = new Date(
       campaign.account.endCampaign.toNumber() * 1000
     ).getTime();
-    const isCampaignEnded = new Date().getTime() > endTime;
+    const isCampaignEnded = (new Date().getTime() > endTime) || campaign.account.isWithdrawn;
     const [imageLoading, setImageLoading] = useState(true);
     const [showImage, setShowImage] = useState(false);
     const pledgedInSol = lamportsToSol(
@@ -291,7 +291,7 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
                   className="btn btn-wide text-2xl font-bold mt-4"
                   style={{ width: "100%" }}
                 >
-                  {isCampaignEnded ? "Ended Campaign" : "Support Campaign"}{" "}
+                  {isCampaignEnded ? "Finished Campaign" : "Support Campaign"}{" "}
                 </button>
               </Link>
             </div>

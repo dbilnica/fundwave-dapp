@@ -41,6 +41,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
   const [showImage, setShowImage] = useState(false);
   const [amount, setAmount] = useState("1");
   const [showDonors, setShowDonors] = useState(false);
+  const [isWithdrawn, setIsWithdrawn] = useState(false);
   const ipfsProviders = [
     "https://dweb.link/ipfs/",
     "https://gateway.pinata.cloud/ipfs/",
@@ -73,6 +74,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
       const campaignData = await program.account.campaign.fetch(campaignKey);
       setCampaign(campaignData);
       setCampaignPublicKey(campaignKey);
+      setIsWithdrawn(campaignData.isWithdrawn);
     } catch (error) {
       console.error("Error fetching campaign:", error);
     } finally {
@@ -400,41 +402,54 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
                 />
               )}
 
-              {userHasDonated() && (
-                <div className={styles.buttonContainer}>
-                  <button
-                    onClick={() => cancelSupport(campaignPublicKey)}
-                    className={`btn btn-wide ${styles.btnCancel} text-xl font-semibold ml-2`}
-                  >
-                    Cancel Support
-                  </button>
+              {isWithdrawn ? (
+                 <div className={styles.buttonContainer}>
+                <button
+                  className={`btn btn-wide ${styles.btnWithdraw} text-xl font-bold`}
+                  disabled
+                >
+                  Campaign Backed
+                </button>
                 </div>
+              ) : (
+                <>
+                  {userHasDonated() && (
+                    <div className={styles.buttonContainer}>
+                      <button
+                        onClick={() => cancelSupport(campaignPublicKey)}
+                        className={`btn btn-wide ${styles.btnCancel} text-xl font-semibold ml-2`}
+                      >
+                        Cancel Support
+                      </button>
+                    </div>
+                  )}
+                  <div className={styles.cardActions}>
+                    <div className={styles.inputButtonContainer}>
+                      <input
+                        id="support"
+                        type="number"
+                        value={amount}
+                        max={MAX_SUPPORT_AMOUNT_SOL.toString()}
+                        step="0.5"
+                        onChange={handleAmountChange}
+                        style={{ backgroundColor: inputBgColor }}
+                        placeholder="Amount in SOL"
+                        className={`input input-bordered input-primary ${styles.inputSupport}`}
+                        required
+                      />
+                      <button
+                        onClick={() => supportCampaign(parseFloat(amount))}
+                        className={`btn ${styles.btnSupport} text-xl font-bold`}
+                        disabled={isSupporting || parseFloat(amount) <= 0}
+                      >
+                        {isSupporting
+                          ? "Supporting..."
+                          : `Support with ${amount} SOL`}
+                      </button>
+                    </div>
+                  </div>
+                </>
               )}
-              <div className={styles.cardActions}>
-                <div className={styles.inputButtonContainer}>
-                  <input
-                    id="support"
-                    type="number"
-                    value={amount}
-                    max={MAX_SUPPORT_AMOUNT_SOL.toString()}
-                    step="0.5"
-                    onChange={handleAmountChange}
-                    style={{ backgroundColor: inputBgColor }}
-                    placeholder="Amount in SOL"
-                    className={`input input-bordered input-primary ${styles.inputSupport}`}
-                    required
-                  />
-                  <button
-                    onClick={() => supportCampaign(parseFloat(amount))}
-                    className={`btn ${styles.btnSupport} text-xl font-bold`}
-                    disabled={isSupporting || parseFloat(amount) <= 0}
-                  >
-                    {isSupporting
-                      ? "Supporting..."
-                      : `Support with ${amount} SOL`}
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
