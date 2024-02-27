@@ -2,20 +2,13 @@ import { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAutoConnect } from "../contexts/AutoConnectProvider";
 import NetworkSwitcher from "./NetworkSwitcher";
 import NavElement from "./nav-element";
 import idl from "@/components/idl/crowdfunding_dapp.json";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import {
-  Program,
-  ProgramAccount,
-  AnchorProvider,
-  web3,
-  utils,
-  getProvider,
-} from "@project-serum/anchor";
+import { Program, AnchorProvider } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import styles from "@/styles/AppBar.module.css";
 
@@ -49,14 +42,14 @@ export const AppBar: FC = () => {
   const [program, setProgram] = useState<Program | null>(null);
   const [showNavElements, setShowNavElements] = useState(false);
 
-  const getProvider = async (): Promise<AnchorProvider> => {
+  const getProvider = useCallback(async (): Promise<AnchorProvider> => {
     const provider = new AnchorProvider(
       connection,
       ourWallet,
       AnchorProvider.defaultOptions()
     );
     return provider;
-  };
+  }, [connection, ourWallet]);
 
   const getAdminPubkey = async () => {
     try {
@@ -91,24 +84,22 @@ export const AppBar: FC = () => {
     }
   };
 
-  const getAllCampaigns = async () => {
+  const getAllCampaigns = useCallback(async () => {
     try {
+      if (!program || !userPublicKey) return;
+
       const fetchedCampaigns = await program.account.campaign.all();
-      const userPublicKeyString = userPublicKey?.toString();
+      const userPublicKeyString = userPublicKey.toString();
 
       const userOwnedCampaign = fetchedCampaigns.find(
         ({ account }) => account.owner.toBase58() === userPublicKeyString
       );
 
-      if (userOwnedCampaign) {
-        setHasPortfolio(true);
-      } else {
-        setHasPortfolio(false);
-      }
+      setHasPortfolio(!!userOwnedCampaign);
     } catch (error) {
       console.error("Failed to fetch campaigns:", error);
     }
-  };
+  }, [program, userPublicKey]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -135,13 +126,13 @@ export const AppBar: FC = () => {
     };
 
     initProgram();
-  }, [ourWallet.connected, ourWallet.publicKey, connection]);
+  }, [ourWallet.connected, ourWallet.publicKey, connection, getProvider]);
 
   useEffect(() => {
     if (program && userPublicKey) {
       getAllCampaigns();
     }
-  }, [program, userPublicKey]);
+  }, [program, userPublicKey, getAllCampaigns]);
 
   useEffect(() => {
     if (walletConnected) {
@@ -177,7 +168,7 @@ export const AppBar: FC = () => {
       setShowNavElements(true);
     }, 200);
 
-    return () => clearTimeout(delay); // Cleanup the timeout
+    return () => clearTimeout(delay);
   }, []);
 
   if (walletConnected === null) {

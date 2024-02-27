@@ -1,9 +1,8 @@
 import { FC } from "react";
 import Text from "./Text";
 import NavElement from "./nav-element";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import idl from "@/components/idl/crowdfunding_dapp.json";
-
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Program, AnchorProvider } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
@@ -32,14 +31,16 @@ export const ContentContainer: React.FC<Props> = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [hasPortfolio, setHasPortfolio] = useState(false);
   const [program, setProgram] = useState<Program | null>(null);
-  const getProvider = async (): Promise<AnchorProvider> => {
+
+  const getProvider = useCallback(async (): Promise<AnchorProvider> => {
     const provider = new AnchorProvider(
       connection,
       ourWallet,
       AnchorProvider.defaultOptions()
     );
     return provider;
-  };
+  }, [connection, ourWallet]);
+
   const toggleDrawer = () => {
     const drawer = document.getElementById("my-drawer") as HTMLInputElement;
     if (drawer) {
@@ -80,24 +81,22 @@ export const ContentContainer: React.FC<Props> = ({ children }) => {
     }
   };
 
-  const getAllCampaigns = async () => {
+  const getAllCampaigns = useCallback(async () => {
     try {
+      if (!program || !userPublicKey) return;
+
       const fetchedCampaigns = await program.account.campaign.all();
-      const userPublicKeyString = userPublicKey?.toString();
+      const userPublicKeyString = userPublicKey.toString();
 
       const userOwnedCampaign = fetchedCampaigns.find(
         ({ account }) => account.owner.toBase58() === userPublicKeyString
       );
 
-      if (userOwnedCampaign) {
-        setHasPortfolio(true);
-      } else {
-        setHasPortfolio(false);
-      }
+      setHasPortfolio(!!userOwnedCampaign);
     } catch (error) {
       console.error("Failed to fetch campaigns:", error);
     }
-  };
+  }, [program, userPublicKey]);
 
   useEffect(() => {
     const initProgram = async () => {
@@ -116,13 +115,13 @@ export const ContentContainer: React.FC<Props> = ({ children }) => {
     };
 
     initProgram();
-  }, [ourWallet.connected, ourWallet.publicKey, connection]);
+  }, [ourWallet.connected, ourWallet.publicKey, connection, getProvider]);
 
   useEffect(() => {
     if (program && userPublicKey) {
       getAllCampaigns();
     }
-  }, [program, userPublicKey]);
+  }, [program, userPublicKey, getAllCampaigns]);
 
   useEffect(() => {
     if (ourWallet.connected && ourWallet.publicKey) {
@@ -187,15 +186,21 @@ export const ContentContainer: React.FC<Props> = ({ children }) => {
           </li>
           {walletConnected ? (
             <>
-              <li>
-                {!isAdmin && (
+              {!isAdmin && !hasPortfolio && (
+                <li>
                   <NavElement label="Create Campaign" href="/create" />
-                )}
-              </li>
-              {hasPortfolio && (
-                <NavElement label="Portfolio" href="/portfolio" />
+                </li>
               )}
-              {isAdmin && <NavElement label="Admin" href="/admin" />}
+              {hasPortfolio && (
+                <li>
+                  <NavElement label="Portfolio" href="/portfolio" />
+                </li>
+              )}
+              {isAdmin && (
+                <li>
+                  <NavElement label="Admin" href="/admin" />
+                </li>
+              )}
             </>
           ) : (
             <li>
