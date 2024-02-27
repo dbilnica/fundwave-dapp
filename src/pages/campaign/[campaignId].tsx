@@ -159,7 +159,7 @@ export const CampaignDetail: FC<CampaignsTableProps> = ({
       console.log(
         "Campaign has been successfully supported " + campaignPublicKey
       );
-      setAmount("");
+      setAmount("1");
       setTimeout(getCampaign, 2000);
     } catch (error) {
       toast.error("Error while supporting!", error);

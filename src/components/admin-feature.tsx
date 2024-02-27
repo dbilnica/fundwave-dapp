@@ -478,7 +478,7 @@ export const AdminTable: FC<CampaignsTableProps> = ({ program }) => {
       )}
       <div className="flex flex-wrap justify-start">
         {noCampaignsAvailable ? (
-          <p className="text-center w-full text-lg">No campaigns to load</p>
+          <p className="text-center w-full text-lg mt-5 font-bold">No campaigns to load</p>
         ) : (
           filteredCampaigns.map((c) => (
             <CampaignCard key={c.publicKey.toBase58()} campaign={c} />

@@ -23,7 +23,7 @@ const SearchAndToggleCard = ({ searchQuery, setSearchQuery, toggleCampaignsView,
 
                     <div className="flex justify-center mt-4">
                         <label className="label cursor-pointer">
-                        <span className={`label-text ${styles.labelText} mr-2`}>Campaigns after deadline</span>
+                        <span className={`label-text ${styles.labelText} mr-2`}>Finalized & Concluded campaigns</span>
                             <input
                                 type="checkbox"
                                 checked={isToggled}

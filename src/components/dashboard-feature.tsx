@@ -155,6 +155,8 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
     );
   }, [campaigns, searchQuery]);
 
+  const noCampaignsAvailable = !isLoading && filteredCampaigns.length === 0;
+
   useEffect(() => {
     getAllCampaigns();
   }, [getAllCampaigns]);
@@ -168,7 +170,8 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
     const endTime = new Date(
       campaign.account.endCampaign.toNumber() * 1000
     ).getTime();
-    const isCampaignEnded = (new Date().getTime() > endTime) || campaign.account.isWithdrawn;
+    const isCampaignEnded =
+      new Date().getTime() > endTime || campaign.account.isWithdrawn;
     const [imageLoading, setImageLoading] = useState(true);
     const [showImage, setShowImage] = useState(false);
     const pledgedInSol = lamportsToSol(
@@ -216,43 +219,43 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
     return (
       <div className="card w-96 bg-base-100 shadow-xl m-2">
         <Link href={`/campaign/${campaignId}`} passHref>
-            <figure className="px-10 pt-10 relative cursor-pointer">
-              {imageLoading && <Loader />}
-              {showImage && (
-                <div
-                  className="overflow-hidden"
-                  style={{ borderRadius: "0.5rem" }}
-                >
-                  <Image
-                    src={computeImageUrl()}
-                    alt="Campaign Image"
-                    width={500}
-                    height={300}
-                    onLoad={() => {
-                      setImageLoading(false);
-                    }}
-                    onError={() => {
-                      console.error("Image failed to load");
-                      handleImageError();
-                    }}
-                  />
-                </div>
-              )}
-            </figure>
+          <figure className="px-10 pt-10 relative cursor-pointer">
+            {imageLoading && <Loader />}
+            {showImage && (
+              <div
+                className="overflow-hidden"
+                style={{ borderRadius: "0.5rem" }}
+              >
+                <Image
+                  src={computeImageUrl()}
+                  alt="Campaign Image"
+                  width={500}
+                  height={300}
+                  onLoad={() => {
+                    setImageLoading(false);
+                  }}
+                  onError={() => {
+                    console.error("Image failed to load");
+                    handleImageError();
+                  }}
+                />
+              </div>
+            )}
+          </figure>
         </Link>
         <div className="card-body flex flex-col">
           <Link href={`/campaign/${campaignId}`} passHref>
-              <h2
-                className="line-clamp-2 card-title text-left text-2xl font-bold mb-1 cursor-pointer"
-                style={{ textTransform: "uppercase" }}
-              >
-                {campaign.account.name}
-              </h2>
+            <h2
+              className="line-clamp-2 card-title text-left text-2xl font-bold mb-1 cursor-pointer"
+              style={{ textTransform: "uppercase" }}
+            >
+              {campaign.account.name}
+            </h2>
           </Link>
           <Link href={`/campaign/${campaignId}`} passHref>
-              <p className="line-clamp-3 text-left text-lg mb-4 flex-grow cursor-pointer">
-                {campaign.account.description}
-              </p>
+            <p className="line-clamp-3 text-left text-lg mb-4 flex-grow cursor-pointer">
+              {campaign.account.description}
+            </p>
           </Link>
           <div className="mt-auto">
             <div className="mb-4">
@@ -301,14 +304,6 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
     );
   };
 
-  if (!filteredCampaigns.length) {
-    return (
-      <div className="text-center py-10">
-        <p className="text-lg font-semibold">No campaigns to load</p>
-      </div>
-    );
-  }
-
   return (
     <>
       <div>
@@ -335,9 +330,15 @@ export const CampaignsTable: FC<CampaignsTableProps> = ({ program }) => {
         )}
 
         <div className="flex flex-wrap justify-start">
-          {filteredCampaigns.map((c) => (
-            <CampaignCard key={c.publicKey.toBase58()} campaign={c} />
-          ))}
+          {noCampaignsAvailable ? (
+            <p className="text-center w-full text-lg mt-5 font-bold">
+              No campaigns to load
+            </p>
+          ) : (
+            filteredCampaigns.map((c) => (
+              <CampaignCard key={c.publicKey.toBase58()} campaign={c} />
+            ))
+          )}
         </div>
       </div>
     </>
