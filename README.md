@@ -13,12 +13,16 @@ Fundwave is a cutting-edge platform that enables users to launch and contribute 
 - **Web3 Integrated**: Supports Solana wallets for a seamless crypto experience.
 - **Smart Contracts**: Utilizes Anchor for Solana smart contract development.
 
+## Deployment
+
+The Fundwave DApp is deployed on Vercel. You can access it at [www.fundwave.space](https://www.fundwave.space/).
+
 ## Installation
 
 Clone the repository:
 
 ```
-git clone https://github.com/dbilnica/crowdfunding-dapp.git
+git clone https://github.com/School-of-Solana/solana-program-dbilnica.git
 cd crowdfunding-dapp
 ```
 
@@ -37,14 +41,6 @@ npm run dev
 ## Usage
 
 After starting the development server, you can create new crowdfunding campaigns, explore existing ones, and contribute to projects you believe in.
-
-## Contributing
-
-We welcome contributions! Please read our [contribution guidelines](CONTRIBUTING.md) before submitting pull requests.
-
-## Report Issues
-
-If you encounter any issues, please report them at [Fundwave DApp Issues](https://github.com/dbilnica/crowdfunding-dapp/issues).
 
 ## License
 
