@@ -15,7 +15,7 @@ Fundwave is a cutting-edge platform that enables users to launch and contribute 
 
 ## Deployment
 
-The Fundwave DApp is deployed on Vercel. You can access it at [www.fundwave.space](https://www.fundwave.fun/).
+The Fundwave DApp is deployed on Vercel. You can access it at [www.fundwave.fun](https://www.fundwave.fun/).
 
 ## Installation
 
