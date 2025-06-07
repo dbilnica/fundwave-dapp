@@ -36,3 +36,4 @@ yarn-error.log*
 
 # logs
 *.log
+".env.local" 
